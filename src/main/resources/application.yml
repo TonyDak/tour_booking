@@ -3,11 +3,11 @@ server:
     servlet:
         context-path: /api
 spring:
-    # datasource:
-    #     url: jdbc:mysql://localhost:3308/springbootdb
-    #     username: root
-    #     password: root
-    #     driver-class-name: com.mysql.cj.jdbc.Driver
+    datasource:
+        url: jdbc:mysql://103.173.227.90:3306/tour-booking
+        username: tour-booking
+        password: n0XKVVma)hmE
+        driver-class-name: com.mysql.cj.jdbc.Driver
     jpa:
         hibernate:
             ddl-auto: update
