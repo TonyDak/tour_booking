@@ -1,4 +1,7 @@
 package com.tourbooking.tour_booking.repository;
 
-public interface ScheduleRepository extends org.springframework.data.jpa.repository.JpaRepository<com.tourbooking.tour_booking.entity.Schedule, java.lang.String> {
-  }
+import com.tourbooking.tour_booking.entity.Schedule;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ScheduleRepository extends JpaRepository<Schedule, String> {
+}

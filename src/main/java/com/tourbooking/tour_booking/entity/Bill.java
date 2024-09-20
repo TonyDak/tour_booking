@@ -11,32 +11,42 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
-public class User {
+public class Bill {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    private String email;
-    private String phone_number;
-    private String user_name;
-    private String password;
-    private LocalDate dob;
+    private LocalDate start_time;
+    private LocalDate end_time;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    private List<Bill> bills;
-
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = CascadeType.PERSIST)   
     @JoinColumn(
-        name = "role_id",
+        name = "user_id",
+        referencedColumnName = "id",
+        nullable = true        
+    )
+    private User user;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+        name = "tour_id",
         referencedColumnName = "id",
         nullable = false
     )
-    private Role role;
+    private Tour tour;
+
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(
+        name = "traveler_id",
+        referencedColumnName = "id",
+        nullable = false
+    )
+    private Traveler traveler;
 
 }
