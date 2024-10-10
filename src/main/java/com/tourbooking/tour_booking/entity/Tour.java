@@ -44,4 +44,15 @@ public class Tour {
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private List<Itinerary> itineraries;
+
+    @ManyToOne(cascade = CascadeType.DETACH)
+    @JoinColumn(
+        name = "user_id",
+        referencedColumnName = "id",
+        nullable = true
+    )
+    private User user;
+
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    private List<BookMark> bookMarks;
 }
