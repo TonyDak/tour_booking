@@ -21,5 +21,5 @@ public class UserInfoUpdate implements Serializable {
     String phone_number;
     String user_name;
     String dob;
-    List<String> roles;
+    Set<Role> roles;
 }

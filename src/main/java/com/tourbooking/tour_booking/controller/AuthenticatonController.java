@@ -2,10 +2,7 @@ package com.tourbooking.tour_booking.controller;
 
 import com.nimbusds.jose.JOSEException;
 import com.tourbooking.tour_booking.dto.ApiResponse;
-import com.tourbooking.tour_booking.dto.auth.AuthenticationResponse;
-import com.tourbooking.tour_booking.dto.auth.AuthenticatonRequest;
-import com.tourbooking.tour_booking.dto.auth.IntrospectRequest;
-import com.tourbooking.tour_booking.dto.auth.IntrospectResponse;
+import com.tourbooking.tour_booking.dto.auth.*;
 import com.tourbooking.tour_booking.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +28,12 @@ public class AuthenticatonController {
     public ApiResponse<IntrospectResponse> login(@RequestBody IntrospectRequest request) throws ParseException, JOSEException {
         var valid = authenticationService.introspect(request);
         return ApiResponse.<IntrospectResponse>builder().result(valid).build();
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<String> logout(@RequestBody LogoutRequest logoutRequest) throws ParseException, JOSEException {
+        authenticationService.logout(logoutRequest);
+        return ApiResponse.<String>builder().result("Logged out").build();
     }
 
 }

@@ -3,6 +3,7 @@ package com.tourbooking.tour_booking.service;
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.tourbooking.tour_booking.dto.user.ChangePasswordRequest;
@@ -61,11 +62,8 @@ public class UserService {
         User user = userMapper.toUser(userCreate);
 
         user.setPassword(passwordEncoder.encode(userCreate.getPassword()));
-//        var role = roleRepository.findById("2").orElseThrow();
-//        user.setRole(role);
-//        HashSet<String> roles = new HashSet<>();
-//        roles.add(Role.USER.name());
-//        user.setRoles(roles);
+        var roles = roleRepository.findAllById(new HashSet<>(Set.of("USER")));
+        user.setRoles(new HashSet<>(roles));
         userRepository.save(user);
         return userCreate;
     }
@@ -76,7 +74,7 @@ public class UserService {
     public UserInfoUpdate updateUser(String id, UserInfoUpdate userInfo) {
         User user = userRepository.findById(id).orElseThrow();
         userMapper.updateUserFromDto(userInfo, user);
-        var roles = roleRepository.findAllById(userInfo.getRoles());
+        var roles = roleRepository.findAllById(userInfo.getRoles().stream().map(role -> role.getName()).collect(Collectors.toSet()));
         user.setRoles(new HashSet<>(roles));
         userRepository.save(user);
         return userInfo;

@@ -1,5 +1,7 @@
 package com.tourbooking.tour_booking.config;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,9 +25,10 @@ import javax.crypto.spec.SecretKeySpec;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private final String[] PUBLIC_ENPOINT = {"/v1/users", "/v1/auth/login", "/v1/auth/introspect"};
-    @Value("${jwt.secret}")
-    private String jwkSetUri;
+    private final String[] PUBLIC_ENPOINT = {"/v1/users", "/v1/auth/login", "/v1/auth/introspect", "/v1/auth/logout"};
+
+    @Autowired
+    private  JwtCustomDecoder jwtCustomDecoder;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -37,18 +40,10 @@ public class SecurityConfig {
                 )
                 .oauth2ResourceServer(oauth2ResourceServer ->
                         oauth2ResourceServer
-                                .jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                                .jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtCustomDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 );
         http.csrf(AbstractHttpConfigurer::disable);
         return http.build();
-    }
-
-    @Bean
-    JwtDecoder jwtDecoder() {
-        SecretKeySpec secretKeySpec = new SecretKeySpec(jwkSetUri.getBytes(), "HS256");
-        return NimbusJwtDecoder.withSecretKey(secretKeySpec)
-                .macAlgorithm(MacAlgorithm.HS256)
-                .build();
     }
 
     @Bean
