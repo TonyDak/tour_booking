@@ -48,4 +48,13 @@ public class Bill {
     )
     private Traveler traveler;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+        name = "promotion_id",
+        referencedColumnName = "id",
+        nullable = true
+    )
+    private Promotion promotion;
+
+
 }

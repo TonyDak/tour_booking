@@ -44,4 +44,13 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private List<BookMark> bookMarks;
 
+    @ManyToMany
+    @JoinTable(
+        name = "user_promotion",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "promotion_id")
+    )
+    private Set<Promotion> promotions;
+
+
 }
