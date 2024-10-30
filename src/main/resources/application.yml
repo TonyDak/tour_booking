@@ -20,10 +20,10 @@ spring:
             hibernate:
                 dialect: org.hibernate.dialect.MySQL8Dialect
     mail:
-        host: "smtp.gmail.com"
-        port: 587
-        username: "duckg2083@gmail.com"
-        password: "ofjs suun slcd kfkm"
+        host: ${MAIL_HOST}
+        port: ${MAIL_PORT}
+        username: ${MAIL_USERNAME}
+        password: ${MAIL_PASSWORD}
         properties:
             mail:
                 smtp:
@@ -31,4 +31,4 @@ spring:
                     starttls:
                         enable: true
 jwt:
-    secret: "4k/ODvsqmoCjC4kWDJHLab6+9Xu4V2G6wIH+T0C17zBuJtxeSjQDnCI7fi3ZMdCT"
+    secret: ${SECRET_KEY}
