@@ -1,16 +1,9 @@
 package com.tourbooking.tour_booking.entity;
 
 import java.time.LocalDate;
+import java.util.List;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,8 +14,13 @@ public class Bill {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+    private String user_name;
+    private String email;
+    private String phone_number;
+    private String special_requirement;
     private LocalDate start_time;
     private LocalDate end_time;
+    private Double total_price;
 
     @ManyToOne(cascade = CascadeType.PERSIST)   
     @JoinColumn(
@@ -40,12 +38,15 @@ public class Bill {
     )
     private Tour tour;
 
+    @OneToMany(mappedBy = "bill", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    private List<Traveler> travelers;
+
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(
-        name = "traveler_id",
+        name = "promotion_id",
         referencedColumnName = "id",
-        nullable = false
+        nullable = true
     )
-    private Traveler traveler;
+    private Promotion promotion;
 
 }

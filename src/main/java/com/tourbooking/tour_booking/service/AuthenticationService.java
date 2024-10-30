@@ -6,15 +6,16 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.tourbooking.tour_booking.dto.auth.*;
+import com.tourbooking.tour_booking.dto.auth.RegisterRequest;
 import com.tourbooking.tour_booking.entity.InvalidatedToken;
 import com.tourbooking.tour_booking.entity.User;
+import com.tourbooking.tour_booking.mapper.UserMapper;
 import com.tourbooking.tour_booking.repository.InvalidatedTokenRepository;
+import com.tourbooking.tour_booking.repository.RoleRepository;
 import com.tourbooking.tour_booking.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,9 +24,7 @@ import org.springframework.util.CollectionUtils;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -33,6 +32,8 @@ import java.util.UUID;
 public class AuthenticationService {
     private final UserRepository userRepository;
     private final InvalidatedTokenRepository invalidatedTokenRepository;
+    private final RoleRepository roleRepository;
+    private final UserMapper userMapper;
 
     @Value("${jwt.secret}")
     private String SECRET_KEY;
@@ -50,13 +51,29 @@ public class AuthenticationService {
 
         return IntrospectResponse.builder().valid(isValid).build();
     }
+    public RegisterRequest register(RegisterRequest registerRequest) {
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        if (userRepository.existsByEmail(registerRequest.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
+        User user = userMapper.toUser(registerRequest);
 
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        var roles = roleRepository.findAllById(new HashSet<>(Set.of("USER")));
+        user.setRoles(new HashSet<>(roles));
+        userRepository.save(user);
+        return registerRequest;
+    }
     public AuthenticationResponse isAuthenticated(AuthenticatonRequest authenticatonRequest) {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         var user = userRepository.findByEmail(authenticatonRequest.getEmail()).orElseThrow(() -> new RuntimeException("User not found"));
         boolean authenticated =  passwordEncoder.matches(authenticatonRequest.getPassword(), user.getPassword());
         if(!authenticated){
             throw new RuntimeException("Invalid password");
+        }
+        //check status
+        if(user.getStatus() != 1){
+            throw new RuntimeException("User is not active");
         }
         var token = generateToken(user);
         return  AuthenticationResponse.builder().authenticated(authenticated).token(token).build();

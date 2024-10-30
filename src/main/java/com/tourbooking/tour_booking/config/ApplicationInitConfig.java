@@ -29,7 +29,7 @@ public class ApplicationInitConfig {
                 roleRepository.save(Role.builder()
                         .name("USER")
                         .description("User role")
-                        .permissions(new HashSet<>(Set.of(Permission.READ)))
+                        .permissions(new HashSet<>(Set.of(Permission.READ, Permission.CREATE, Permission.UPDATE)))
                         .build());
 
                 Role roleAdmin = roleRepository.save(Role.builder()
@@ -42,6 +42,7 @@ public class ApplicationInitConfig {
                         .email("admin@admin.com")
                         .password(passwordEncoder.encode("admin"))
                         .roles(new HashSet<>(Set.of(roleAdmin)))
+                        .status(1)
                         .build();
 
                 userRepository.save(user);

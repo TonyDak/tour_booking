@@ -3,7 +3,9 @@ package com.tourbooking.tour_booking.controller;
 import com.nimbusds.jose.JOSEException;
 import com.tourbooking.tour_booking.dto.ApiResponse;
 import com.tourbooking.tour_booking.dto.auth.*;
+import com.tourbooking.tour_booking.dto.auth.RegisterRequest;
 import com.tourbooking.tour_booking.service.AuthenticationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,8 +26,16 @@ public class AuthenticatonController {
         return ApiResponse.<AuthenticationResponse>builder().result(authenticated).build();
     }
 
+    @PostMapping("/register")
+    public ApiResponse<RegisterRequest> createUser(@RequestBody @Valid RegisterRequest registerRequest){
+        ApiResponse<RegisterRequest> response = new ApiResponse<>();
+        response.setMessage("User created");
+        response.setResult(authenticationService.register(registerRequest));
+        return response;
+    }
+
     @PostMapping("/introspect")
-    public ApiResponse<IntrospectResponse> login(@RequestBody IntrospectRequest request) throws ParseException, JOSEException {
+    public ApiResponse<IntrospectResponse> token(@RequestBody IntrospectRequest request) throws ParseException, JOSEException {
         var valid = authenticationService.introspect(request);
         return ApiResponse.<IntrospectResponse>builder().result(valid).build();
     }
