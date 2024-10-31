@@ -1,6 +1,5 @@
 package com.tourbooking.tour_booking.controller;
 
-import java.security.Principal;
 import java.util.List;
 
 import com.tourbooking.tour_booking.dto.ApiResponse;
@@ -8,7 +7,6 @@ import com.tourbooking.tour_booking.dto.user.*;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import com.tourbooking.tour_booking.service.UserService;
@@ -30,7 +28,7 @@ public class UserController {
 
 
     @GetMapping("/my-info")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<UserInfoRequest> getMyInfo(){
         ApiResponse<UserInfoRequest> response = new ApiResponse<>();
         response.setMessage("User info");
@@ -47,17 +45,25 @@ public class UserController {
         return response;
     }
 
-    @PutMapping("/update-user/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ApiResponse<UserUpdateRequest> updateUser(@PathVariable String id, @RequestBody UserUpdateRequest userUpdateRequest){
+    @PutMapping("/update-user")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<UserUpdateRequest> updateUser(@RequestBody UserUpdateRequest userUpdateRequest){
         ApiResponse<UserUpdateRequest> response = new ApiResponse<>();
         response.setMessage("User updated successfully");
-        response.setResult(userService.updateUser(id, userUpdateRequest));
+        response.setResult(userService.updateUser(userUpdateRequest));
+        return response;
+    }
+    @PutMapping("/admin/update-user")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<AdminUserUpdateRequest> updateUser(@RequestBody AdminUserUpdateRequest adminUserUpdateRequest){
+        ApiResponse<AdminUserUpdateRequest> response = new ApiResponse<>();
+        response.setMessage("User updated successfully");
+        response.setResult(userService.AdminUpdateUser(adminUserUpdateRequest));
         return response;
     }
 
     @PostMapping("/change-password")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Void> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest){
         userService.changePassword(changePasswordRequest);
         ApiResponse<Void> response = new ApiResponse<>();

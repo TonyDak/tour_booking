@@ -60,11 +60,22 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public UserUpdateRequest updateUser(String id, UserUpdateRequest userUpdateRequest) {
-        User user = userRepository.findById(id).orElseThrow();
+    public UserUpdateRequest updateUser(UserUpdateRequest userUpdateRequest) {
+        var context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new RuntimeException("User not found")
+        );
         userMapper.updateUserFromDto(userUpdateRequest, user);
         userRepository.save(user);
         return userUpdateRequest;
+    }
+
+    public AdminUserUpdateRequest AdminUpdateUser(AdminUserUpdateRequest adminUserUpdateRequest) {
+        User user = userRepository.findByEmail(adminUserUpdateRequest.getEmail()).orElseThrow(() -> new RuntimeException("User not found"));
+        userMapper.AdminUpdateUserFromDto(adminUserUpdateRequest, user);
+        userRepository.save(user);
+        return adminUserUpdateRequest;
     }
 
     public void changePassword(ChangePasswordRequest changePasswordRequest) {
