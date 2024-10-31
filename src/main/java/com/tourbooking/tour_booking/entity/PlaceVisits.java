@@ -20,9 +20,9 @@ public class PlaceVisits {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    private LocalDateTime start_time;
-    private LocalDateTime end_time;
-    private String desccription;
+    private Integer start_time;
+    private Integer end_time;
+    private String description;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(
@@ -39,4 +39,9 @@ public class PlaceVisits {
         nullable = true
     )
     private Place place;
+
+
+    
+
+
 }

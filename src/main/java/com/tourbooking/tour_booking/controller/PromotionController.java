@@ -1,12 +1,14 @@
 package com.tourbooking.tour_booking.controller;
 
 import com.tourbooking.tour_booking.dto.ApiResponse;
+
 import com.tourbooking.tour_booking.dto.promotion.ActivePromotionRequest;
 import com.tourbooking.tour_booking.dto.promotion.PromotionRequest;
 import com.tourbooking.tour_booking.dto.promotion.PromotionInfoRequest;
 import com.tourbooking.tour_booking.service.PromotionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PromotionController {
     private final PromotionService promotionService;
+
 
     //get all promotions
     @GetMapping
@@ -55,6 +58,7 @@ public class PromotionController {
         ApiResponse<Void> response = new ApiResponse<>();
         response.setMessage("Promotion updated");
         return response;
+
     }
 
 

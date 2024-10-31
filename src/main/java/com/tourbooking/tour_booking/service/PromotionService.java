@@ -7,6 +7,7 @@ import com.tourbooking.tour_booking.entity.Promotion;
 import com.tourbooking.tour_booking.mapper.PromotionMapper;
 import com.tourbooking.tour_booking.repository.PromotionRepository;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,4 +47,5 @@ public class PromotionService {
         promotion.setActive(activePromotionRequest.getActive());
         promotionRepository.save(promotion);
     }
+
 }

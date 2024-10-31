@@ -49,4 +49,13 @@ public class Bill {
     )
     private Promotion promotion;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+        name = "promotion_id",
+        referencedColumnName = "id",
+        nullable = true
+    )
+    private Promotion promotion;
+
+
 }

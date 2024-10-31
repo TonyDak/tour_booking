@@ -1,5 +1,6 @@
 package com.tourbooking.tour_booking.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,6 +23,7 @@ public class Itinerary {
     private String title;
     private Integer day_no;
 
+    @JsonIgnore
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(
         name = "tour_id",
@@ -30,6 +32,7 @@ public class Itinerary {
     )
     private Tour tour;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "itinerary", cascade = CascadeType.PERSIST)
     private List<PlaceVisits> placeVisits;
     

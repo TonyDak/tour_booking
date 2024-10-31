@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.List;
 
+
 @Entity
 @Data
 @AllArgsConstructor
@@ -17,6 +18,7 @@ public class Promotion {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+
     private Integer active;
     private String code;
     private String description;
@@ -32,4 +34,7 @@ public class Promotion {
     //bill
     @OneToMany(mappedBy = "promotion", cascade = CascadeType.PERSIST)
     private List<Bill> bills;
+
+
+
 }
