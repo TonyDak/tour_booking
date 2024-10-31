@@ -16,4 +16,5 @@ public interface PromotionMapper {
 
     //updatePromotionFromDto
     void updatePromotionFromDto(PromotionRequest promotionRequest, @MappingTarget Promotion promotion);
+
 }
