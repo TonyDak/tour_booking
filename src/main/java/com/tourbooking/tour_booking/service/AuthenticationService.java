@@ -61,6 +61,7 @@ public class AuthenticationService {
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         var roles = roleRepository.findAllById(new HashSet<>(Set.of("USER")));
         user.setRoles(new HashSet<>(roles));
+        user.setStatus(1);
         userRepository.save(user);
         return registerRequest;
     }
