@@ -2,6 +2,7 @@ package com.tourbooking.tour_booking.entity;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,6 +27,8 @@ public class Schedule {
     private Integer max_slots;
     private Boolean is_refundable;
 
+
+    @JsonIgnore
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(
         name = "tour_id",

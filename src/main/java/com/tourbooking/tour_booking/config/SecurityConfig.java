@@ -38,7 +38,9 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST,"/v1/promotions").permitAll()
                                 .requestMatchers(HttpMethod.PUT,"/v1/promotions/{id}").permitAll()
                                 .requestMatchers(HttpMethod.GET,"/v1/promotions").permitAll()
-
+                                .requestMatchers(HttpMethod.POST,"/v1/tours").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/v1/tours").permitAll()
+                                .requestMatchers(HttpMethod.GET,"/v1/tours/summaries").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2ResourceServer ->
