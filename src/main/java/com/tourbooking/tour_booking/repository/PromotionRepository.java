@@ -1,8 +1,11 @@
 package com.tourbooking.tour_booking.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.tourbooking.tour_booking.entity.Promotion;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PromotionRepository  extends JpaRepository<Promotion, String> {
-    boolean existsByCode(String code);
+import java.util.Optional;
+
+public interface PromotionRepository extends JpaRepository<Promotion, String> {
+    //find id by code
+    Optional<Promotion> findByCode(String code);
 }

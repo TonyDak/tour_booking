@@ -7,7 +7,6 @@ import lombok.Setter;
 import lombok.Value;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -16,10 +15,9 @@ import java.util.Set;
 @Value
 @Getter
 @Setter
-public class UserInfoUpdate implements Serializable {
+public class UserUpdateRequest implements Serializable {
     String email;
     String phone_number;
     String user_name;
     String dob;
-    Set<Role> roles;
 }

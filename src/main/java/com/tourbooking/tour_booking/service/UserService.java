@@ -1,19 +1,18 @@
 package com.tourbooking.tour_booking.service;
 
-import java.security.Principal;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.tourbooking.tour_booking.dto.user.ChangePasswordRequest;
-import com.tourbooking.tour_booking.dto.user.UserCreate;
-import com.tourbooking.tour_booking.dto.user.UserInfoUpdate;
+import com.tourbooking.tour_booking.dto.user.*;
 import com.tourbooking.tour_booking.mapper.UserMapper;
 import com.tourbooking.tour_booking.repository.RoleRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,25 +26,25 @@ import com.tourbooking.tour_booking.repository.UserRepository;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final JavaMailSender mailSender;
 
 
-    public List<UserInfoUpdate> getUsers(){
-        List<UserInfoUpdate> users;
+    public List<UserInfoRequest> getUsers(){
+        List<UserInfoRequest> users;
         users = userRepository.findAll().stream()
                 .map(userMapper::toUserInfoUpdate)
                 .collect(Collectors.toList());
         return users;
     }
 
-    public UserInfoUpdate getUser(String id) {
+    public UserInfoRequest getUser(String id) {
         User user = userRepository.findById(id).orElseThrow();
         return userMapper.toUserInfoUpdate(user);
     }
 
-    public UserInfoUpdate getMyInfo() {
+    public UserInfoRequest getMyInfo() {
         var context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(
@@ -54,42 +53,68 @@ public class UserService {
         return userMapper.toUserInfoUpdate(user);
     }
 
-    public UserCreate createUser(UserCreate userCreate) {
 
-        if (userRepository.existsByEmail(userCreate.getEmail())) {
-            throw new RuntimeException("Email already exists");
-        }
-        User user = userMapper.toUser(userCreate);
-
-        user.setPassword(passwordEncoder.encode(userCreate.getPassword()));
-        var roles = roleRepository.findAllById(new HashSet<>(Set.of("USER")));
-        user.setRoles(new HashSet<>(roles));
+    public void updateStatus(UpdateStatusRequest request) {
+        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setStatus(request.getStatus());
         userRepository.save(user);
-        return userCreate;
-    }
-    public void deleteUser(String id) {
-        userRepository.deleteById(id);
     }
 
-    public UserInfoUpdate updateUser(String id, UserInfoUpdate userInfo) {
+    public UserUpdateRequest updateUser(String id, UserUpdateRequest userUpdateRequest) {
         User user = userRepository.findById(id).orElseThrow();
-        userMapper.updateUserFromDto(userInfo, user);
-        var roles = roleRepository.findAllById(userInfo.getRoles().stream().map(role -> role.getName()).collect(Collectors.toSet()));
-        user.setRoles(new HashSet<>(roles));
+        userMapper.updateUserFromDto(userUpdateRequest, user);
         userRepository.save(user);
-        return userInfo;
+        return userUpdateRequest;
     }
 
-    public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
-        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
-        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new IllegalStateException("Wrong password");
+    public void changePassword(ChangePasswordRequest changePasswordRequest) {
+        var context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        if (!passwordEncoder.matches(changePasswordRequest.getCurrentPassword(), user.getPassword())) {
+            throw new RuntimeException("Old password is incorrect");
         }
-        if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
-            throw new IllegalStateException("Password are not the same");
+        //check if new password is the same as the old password
+        if (passwordEncoder.matches(changePasswordRequest.getNewPassword(), user.getPassword())) {
+            throw new RuntimeException("New password is the same as the old password");
         }
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
         userRepository.save(user);
+    }
 
+    public void forgotPassword(ForgotPasswordRequest forgotPasswordRequest) throws MessagingException {
+        var user = userRepository.findByEmail(forgotPasswordRequest.getEmail()).orElseThrow(() -> new RuntimeException("User not found"));
+        // Generate a reset token
+        String token = UUID.randomUUID().toString();
+        user.setToken(token);
+        userRepository.save(user);
+        // Send email with reset token
+        sendResetEmail(forgotPasswordRequest.getEmail(), token);
+    }
+
+    private void sendResetEmail(String email, String token) throws MessagingException {
+        String resetUrl = "http://localhost:8080/api/v1/users/reset-password/" + token;
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        helper.setTo(email);
+        helper.setSubject("Password Reset Request");
+        helper.setText("<p>To reset your password, click the link below:</p>"
+                + "<a href=\"" + resetUrl + "\">Reset Password</a>", true);
+
+        mailSender.send(message);
+    }
+
+    public void resetPassword(String token, ResetPasswordRequest resetPasswordRequest) {
+        // Check if token is valid
+        var user = userRepository.findByToken(token).orElseThrow(() -> new RuntimeException("Invalid token"));
+        if (!resetPasswordRequest.getNewPassword().equals(resetPasswordRequest.getConfirmPassword())) {
+            throw new IllegalStateException("Passwords are not the same");
+        }
+        // Update user password
+        user.setPassword(passwordEncoder.encode(resetPasswordRequest.getNewPassword()));
+        user.setToken(null);
+        userRepository.save(user);
     }
 }

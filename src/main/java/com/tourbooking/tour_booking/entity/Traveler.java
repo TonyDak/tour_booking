@@ -1,12 +1,6 @@
 package com.tourbooking.tour_booking.entity;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.List;
@@ -22,6 +16,11 @@ public class Traveler {
     private String phone_number;
     private String name;
 
-    @OneToMany(mappedBy = "traveler", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    private List<Bill> bills;
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(
+        name = "bill_id",
+        referencedColumnName = "id",
+        nullable = false
+    )
+    private Bill bill;
 }

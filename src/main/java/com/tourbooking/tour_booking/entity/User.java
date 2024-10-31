@@ -1,15 +1,11 @@
 package com.tourbooking.tour_booking.entity;
 
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import com.tourbooking.tour_booking.entity.Role;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 @Builder
 @Entity
@@ -25,6 +21,8 @@ public class User {
     private String user_name;
     private String password;
     private LocalDate dob;
+    private Integer status;
+    private String token;
 
     @ManyToMany
     private Set<Role> roles;
@@ -37,9 +35,6 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private List<Bill> bills;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.DETACH, fetch = FetchType.LAZY)
-    private List<Tour> tours;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private List<BookMark> bookMarks;

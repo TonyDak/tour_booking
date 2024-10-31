@@ -1,4 +1,4 @@
-package com.tourbooking.tour_booking.dto.user;
+package com.tourbooking.tour_booking.dto.auth;
 
 import com.tourbooking.tour_booking.entity.User;
 import jakarta.validation.Valid;
@@ -14,7 +14,7 @@ import java.io.Serializable;
  */
 @Value
 @Valid
-public class UserCreate implements Serializable {
+public class RegisterRequest implements Serializable {
     @Email(message = "Email should be valid")
     String email;
     @Pattern(regexp = "^0[0-9]{9}$", message = "Phone number should start with 0 and be 10 digits long")

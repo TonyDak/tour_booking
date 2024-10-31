@@ -1,25 +1,20 @@
 package com.tourbooking.tour_booking.mapper;
 
-import com.tourbooking.tour_booking.dto.promotion.PromotionCreate;
-import com.tourbooking.tour_booking.dto.promotion.PromotionUpdate;
+import com.tourbooking.tour_booking.dto.promotion.PromotionRequest;
+import com.tourbooking.tour_booking.dto.promotion.PromotionInfoRequest;
 import com.tourbooking.tour_booking.entity.Promotion;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 @Mapper(componentModel = "spring")
 public interface PromotionMapper {
+    //toPromotionInfoRequest
+    PromotionInfoRequest toPromotionInfoRequest(Promotion promotion);
 
-    @Mapping(target = "expireddate", expression = "java(convertStringToLocalDate(promotionCreate.getExpireddate()))")
-    Promotion toPromotion(PromotionCreate promotionCreate);
+    //toPromotion
+    Promotion toPromotion(PromotionRequest promotionRequest);
 
-    default LocalDate convertStringToLocalDate(String expireddate) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        return LocalDate.parse(expireddate, formatter);
-    }
+    //updatePromotionFromDto
+    void updatePromotionFromDto(PromotionRequest promotionRequest, @MappingTarget Promotion promotion);
 
-    void updatePromotionFromDto(PromotionUpdate promotionUpdate, @MappingTarget Promotion promotion);
 }
