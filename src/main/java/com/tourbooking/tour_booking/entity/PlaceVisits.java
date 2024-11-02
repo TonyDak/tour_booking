@@ -1,7 +1,9 @@
 package com.tourbooking.tour_booking.entity;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,8 +22,8 @@ public class PlaceVisits {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    private Integer start_time;
-    private Integer end_time;
+    private String start_time;
+    private String end_time;
     private String description;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
@@ -32,6 +34,7 @@ public class PlaceVisits {
     )
     private Itinerary itinerary;
 
+    @JsonIgnore
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(
         name = "place_id",
@@ -40,6 +43,9 @@ public class PlaceVisits {
     )
     private Place place;
 
+    public String getPlaceId() {
+        return place != null ? place.getId() : null;
+    }
 
     
 

@@ -30,6 +30,9 @@ public class SecurityConfig {
                         authorizeRequests
 
                                 .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
+                                .requestMatchers(HttpMethod.POST, "v1/tours/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/v1/tours/**").permitAll()
+                                .requestMatchers(HttpMethod.DELETE, "/v1/tours/**").permitAll()
 
                                 .anyRequest().authenticated()
                 )

@@ -2,7 +2,6 @@ package com.tourbooking.tour_booking.dto.tour;
 
 import com.tourbooking.tour_booking.dto.gallery.GalleryCreate;
 import com.tourbooking.tour_booking.dto.itinerary.ItineraryCreate;
-import com.tourbooking.tour_booking.dto.location.LocationCreate;
 import com.tourbooking.tour_booking.dto.schedule.ScheduleCreate;
 import com.tourbooking.tour_booking.entity.Tour;
 import jakarta.validation.Valid;
@@ -35,10 +34,12 @@ public class TourCreate {
     String policy;
 
     String min_booking_traveller;
-
+    String locationId;
     List<GalleryCreate> galleries;
     List<ScheduleCreate> schedules;
     List<ItineraryCreate> itineraries;
-    LocationCreate location;
+
+
+
 
 }

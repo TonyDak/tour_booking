@@ -30,5 +30,18 @@ spring:
                     auth: true
                     starttls:
                         enable: true
+
+    servlet:
+      multipart:
+          max-file-size: 10MB
+          max-request-size: 10MB
 jwt:
     secret: ${SECRET_KEY}
+
+aws:
+    s3:
+        bucket-name: img-tour
+        endpoint: s3-hcm-r1.s3cloud.vn:443
+        access-key-id: 21e50aad64a385dc8f02
+        secret-access-key: spFSHR3xmXa5wdJM913nZFudYED/U1aD8RN6vsRV
+        region: hcm

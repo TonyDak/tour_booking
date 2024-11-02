@@ -2,7 +2,6 @@ package com.tourbooking.tour_booking.mapper;
 
 import com.tourbooking.tour_booking.dto.gallery.GalleryCreate;
 import com.tourbooking.tour_booking.dto.itinerary.ItineraryCreate;
-import com.tourbooking.tour_booking.dto.location.LocationCreate;
 import com.tourbooking.tour_booking.dto.placevisit.PlaceVisitCreate;
 import com.tourbooking.tour_booking.dto.schedule.ScheduleCreate;
 import com.tourbooking.tour_booking.dto.tour.TourCreate;
@@ -19,8 +18,7 @@ public interface TourMapper {
     @Mapping(target = "galleries", source = "galleries")
     @Mapping(target = "schedules", source = "schedules")
     @Mapping(target = "itineraries", source = "itineraries")
-    @Mapping(target = "location", source = "location")
-
+    @Mapping(target = "location", ignore = true)
     Tour toTour(TourCreate tourCreate);
 
     @Mapping(target = "tour", ignore = true)
@@ -30,10 +28,15 @@ public interface TourMapper {
     Schedule toSchedule(ScheduleCreate scheduleCreate);
 
     @Mapping(target = "tour", ignore = true)
+    @Mapping(target = "placeVisits", source = "placeVisits")
     Itinerary toItinerary(ItineraryCreate itineraryCreate);
 
-    @Mapping(target = "tour", ignore = true)
-    Location toLocation(LocationCreate locationCreate);
+    @Mapping(target = "itinerary", ignore = true)
+    @Mapping(target = "place", source = "place")
+    PlaceVisits toPlaceVisit(PlaceVisitCreate placeVisitCreate);
+
+
+
 
 
     List<Gallery> toGalleries(List<GalleryCreate> galleryCreates);
