@@ -33,7 +33,7 @@ public class Itinerary {
     private Tour tour;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "itinerary", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "itinerary", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlaceVisits> placeVisits;
     
 }

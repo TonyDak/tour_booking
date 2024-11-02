@@ -1,5 +1,6 @@
 package com.tourbooking.tour_booking.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,6 +24,7 @@ public class Place {
     private String address;
     private String name;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "place", cascade = CascadeType.PERSIST)
     private List<PlaceVisits> placeVisits;
 }

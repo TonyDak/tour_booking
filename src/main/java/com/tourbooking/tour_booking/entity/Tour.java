@@ -36,20 +36,20 @@ public class Tour {
     @OneToOne(mappedBy = "tour", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, optional = false)
     private Bill bill;
 
-    @OneToMany(mappedBy = "tour", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Schedule> schedules;
 
-    @OneToMany(mappedBy = "tour", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Gallery> galleries;
 
-    @OneToMany(mappedBy = "tour", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Itinerary> itineraries;
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private List<BookMark> bookMarks;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "location_id", referencedColumnName = "id")
+    @ManyToOne
+    @JoinColumn(name = "location_id")
     private Location location;
 
    
