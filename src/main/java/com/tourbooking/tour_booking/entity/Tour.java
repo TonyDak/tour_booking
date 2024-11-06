@@ -23,6 +23,7 @@ public class Tour {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String title;
+    private String slug;
     private String avt;
     private Double price;
     private Integer total_days;

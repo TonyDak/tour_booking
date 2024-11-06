@@ -30,6 +30,14 @@ public class TourController {
         return response;
     }
 
+    @PutMapping("/{tourId}")
+    public ApiResponse<TourCreate> updateTour(@PathVariable String tourId, @RequestBody TourCreate tourCreate) {
+        ApiResponse<TourCreate> response = new ApiResponse<>();
+        response.setMessage("Tour updated successfully");
+        response.setResult(tourService.updateTour(tourId, tourCreate));
+        return response;
+    }
+
 //    @GetMapping
 //    public ResponseEntity<List<Tour>> getAllTours() {
 //        List<Tour> tours = tourService.getAllTours();
@@ -42,7 +50,7 @@ public class TourController {
         return ResponseEntity.ok(summaries);
     }
 
-    @GetMapping("/datails/{tourId}")
+    @GetMapping("/details/{tourId}")
     public ResponseEntity<Map<String, Object>> getTourDetails(@PathVariable String tourId) {
         Map<String, Object> tourDetails = tourService.getTourDetails(tourId);
         return ResponseEntity.ok(tourDetails);
@@ -108,6 +116,12 @@ public class TourController {
         response.put("tourId", tourId);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("slug/{slug}")
+    public ResponseEntity<Tour> getTourBySlug(@PathVariable String slug) {
+        Tour tour = tourService.findBySlug(slug);
+        return ResponseEntity.ok(tour);
     }
 
 

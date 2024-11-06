@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import com.tourbooking.tour_booking.dto.tour.TourCreate;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,6 +50,17 @@ public class TourService {
             tour.setLocation(location);
         }
 
+        String baseSlug = toSlug(tourCreate.getTitle());
+        String uniqueSlug = baseSlug;
+        int counter = 1;
+
+        while (tourRepository.existsBySlug(uniqueSlug)) {
+            uniqueSlug = baseSlug + "-" + counter;
+            counter++;
+        }
+
+        tour.setSlug(uniqueSlug);
+
 //        tour.getGalleries().forEach(gallery -> gallery.setTour(tour));
 
         tour.getSchedules().forEach(schedule -> schedule.setTour(tour));
@@ -73,6 +86,79 @@ public class TourService {
         return tourMapper.toTourCreate(tour);
     }
 
+    @Transactional
+    public TourCreate updateTour(String tourId, TourCreate tourCreate) {
+
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new RuntimeException("Tour not found with ID: " + tourId));
+
+        tour.setTitle(tourCreate.getTitle());
+
+        if (tourCreate.getLocationId() != null) {
+            Location location = locationRepository.findById(tourCreate.getLocationId())
+                    .orElseThrow(() -> new RuntimeException("Location not found with ID: " + tourCreate.getLocationId()));
+            tour.setLocation(location);
+        }
+        String baseSlug = toSlug(tourCreate.getTitle());
+
+        if (!tourCreate.getTitle().equals(tour.getTitle())){
+
+            String uniqueSlug = baseSlug;
+            int counter = 1;
+
+            while (tourRepository.existsBySlug(uniqueSlug)) {
+                uniqueSlug = baseSlug + "-" + counter;
+                counter++;
+            }
+
+            tour.setSlug(uniqueSlug);
+        }
+        else {
+            tour.setSlug(tourCreate.getSlug());
+        }
+
+//        scheduleRepository.deleteAllByTourId(tourId);
+//        placeVisitRepository.deleteAllByTourId(tourId);
+//        itineraryRepository.deleteAllByTourId(tourId);
+
+
+        List<Schedule> newSchedules = tourCreate.getSchedules().stream()
+                .map(scheduleCreate -> {
+                    Schedule schedule = tourMapper.toSchedule(scheduleCreate);
+                    schedule.setTour(tour);
+                    return schedule;
+                }).collect(Collectors.toList());
+        scheduleRepository.saveAll(newSchedules);
+
+        // Xử lý các itineraries mới
+        List<Itinerary> newItineraries = tourCreate.getItineraries().stream()
+                .map(itineraryCreate -> {
+                    Itinerary itinerary = tourMapper.toItinerary(itineraryCreate);
+                    itinerary.setTour(tour);
+
+                    // Xử lý các placeVisits trong mỗi itinerary
+                    itinerary.getPlaceVisits().forEach(placeVisit -> {
+                        placeVisit.setItinerary(itinerary);
+                        if (placeVisit.getPlace() != null) {
+                            // Tìm kiếm Place và gán lại cho placeVisit
+                            Place place = placeRepository.findById(placeVisit.getPlace().getId())
+                                    .orElseThrow(() -> new RuntimeException("Place not found with ID: " + placeVisit.getPlace().getId()));
+                            placeVisit.setPlace(place);
+                        }
+                    });
+
+                    return itinerary;
+                }).collect(Collectors.toList());
+        itineraryRepository.saveAll(newItineraries);
+
+        // Lưu tour sau khi cập nhật
+        tourRepository.save(tour);
+
+        return tourMapper.toTourCreate(tour);
+
+    }
+
+
 
 
 
@@ -80,12 +166,16 @@ public class TourService {
         return tourRepository.findAll();
     }
 
+
+
     public List<Map<String, Object>> getAllTourSummaries() {
         List<Tour> tours = tourRepository.findAll();
         return tours.stream()
                 .map(tour -> {
                     Map<String, Object> tourSummary = new LinkedHashMap<>();
+                    tourSummary.put("id", tour.getId());
                     tourSummary.put("title", tour.getTitle());
+                    tourSummary.put("slug", tour.getSlug());
                     tourSummary.put("avt", tour.getAvt());
                     tourSummary.put("price", tour.getPrice());
                     if (tour.getLocation() != null) {
@@ -106,10 +196,19 @@ public class TourService {
 
 
         Map<String, Object> tourDetails = new LinkedHashMap<>();
+        tourDetails.put("id", tour.getId());
         tourDetails.put("title", tour.getTitle());
+        tourDetails.put("slug", tour.getSlug());
         tourDetails.put("avt", tour.getAvt());
         tourDetails.put("price", tour.getPrice());
         tourDetails.put("location", tour.getLocation() != null ? tour.getLocation().getName() : null);
+        tourDetails.put("total_days", tour.getTotal_days());
+        tourDetails.put("start_days", tour.getStart_days());
+        tourDetails.put("end_days", tour.getEnd_days());
+        tourDetails.put("bookable_start_date", tour.getBookable_start_date());
+        tourDetails.put("bookable_end_date", tour.getBookable_end_date());
+        tourDetails.put("policy", tour.getPolicy());
+        tourDetails.put("min_booking_traveller", tour.getMin_booking_traveller());
 
         // Add galleries
         List<String> galleries = tour.getGalleries().stream()
@@ -158,16 +257,19 @@ public class TourService {
         return tourDetails;
     }
 
+
     public List<Map<String, Object>> getToursByLocation(String locationName) {
         List<Tour> tours = tourRepository.findByLocationNameContainingIgnoreCase(locationName);
 
         if (tours.isEmpty()) {
-            return Collections.emptyList();  // Return an empty list if no tours found
+            return Collections.emptyList();
         }
 
         return tours.stream()
                 .map(tour -> {
                     Map<String, Object> tourSummary = new LinkedHashMap<>();
+                    tourSummary.put("id", tour.getId());
+                    tourSummary.put("slug", tour.getSlug());
                     tourSummary.put("title", tour.getTitle());
                     tourSummary.put("avt", tour.getAvt());
                     tourSummary.put("price", tour.getPrice());
@@ -187,9 +289,12 @@ public class TourService {
         tourRepository.save(tour);
     }
 
+    @Transactional
     public void updateGallery(String tourId, List<String> galleryUrls) {
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new RuntimeException("Tour not found with ID: " + tourId));
+
+        galleryRepository.deleteAllByTourId(tourId);
 
         List<Gallery> galleries = galleryUrls.stream()
                 .map(url -> {
@@ -208,6 +313,18 @@ public class TourService {
                 .orElseThrow(() -> new RuntimeException("Tour not found with ID: " + tourId));
         tourRepository.delete(tour);
     }
+
+    private String toSlug(String input) {
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
+        String noDiacritics = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        return noDiacritics.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
+    }
+
+    public Tour findBySlug(String slug) {
+        return tourRepository.findBySlug(slug)
+                .orElseThrow(() -> new RuntimeException("Tour not found with slug: " + slug));
+    }
+
 
 
 
