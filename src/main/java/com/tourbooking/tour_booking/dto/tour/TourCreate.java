@@ -20,6 +20,8 @@ import java.util.List;
 public class TourCreate {
     @NotNull
     String title;
+
+    String slug;
     @NotNull
     Double price;
 

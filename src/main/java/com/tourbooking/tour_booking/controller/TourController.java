@@ -7,6 +7,7 @@ import com.tourbooking.tour_booking.service.ImageService;
 import com.tourbooking.tour_booking.service.TourService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,11 +23,23 @@ public class TourController {
 
     private final ImageService imageService;
 
+//    Tạo tour
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<TourCreate> createTour(@RequestBody TourCreate tourCreate) {
         ApiResponse<TourCreate> response = new ApiResponse<>();
         response.setMessage("Tour created successfully");
         response.setResult(tourService.createTour(tourCreate));
+        return response;
+    }
+
+//    Chỉnh sua tour
+    @PutMapping("/{tourId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Tour> updateTour(@PathVariable String tourId, @RequestBody TourCreate tourCreate) {
+        ApiResponse<Tour> response = new ApiResponse<>();
+        response.setMessage("Tour updated successfully");
+        response.setResult(tourService.updateTour(tourId, tourCreate));
         return response;
     }
 
@@ -36,13 +49,25 @@ public class TourController {
 //        return ResponseEntity.ok(tours);
 //    }
 
+
+//   Danh sách 10 Tour nổi bật
+
+    @GetMapping("/outstanding")
+    public ResponseEntity<List<Map<String, Object>>> getOutstandingTour() {
+        List<Map<String, Object>> tours = tourService.getOutstandingTour();
+        return ResponseEntity.ok(tours);
+    }
+
+
+//    Tất cả tour
     @GetMapping("/summaries")
     public ResponseEntity<List<Map<String, Object>>> getTourSummaries() {
         List<Map<String, Object>> summaries = tourService.getAllTourSummaries();
         return ResponseEntity.ok(summaries);
     }
 
-    @GetMapping("/datails/{tourId}")
+//    Chi tiết tour
+    @GetMapping("/details/{tourId}")
     public ResponseEntity<Map<String, Object>> getTourDetails(@PathVariable String tourId) {
         Map<String, Object> tourDetails = tourService.getTourDetails(tourId);
         return ResponseEntity.ok(tourDetails);
@@ -50,20 +75,37 @@ public class TourController {
 
 
 
+   // Tìm kiếm tour theo location, slug, giá
     @GetMapping("/search")
-    public ResponseEntity<Object> searchToursByLocation(@RequestParam String location) {
-        List<Map<String, Object>> tours = tourService.getToursByLocation(location);
+    public ResponseEntity<List<Map<String, Object>>> searchTours(
+            @RequestParam String locationOrSlug,
+            @RequestParam(required = false) Long minPrice,
+            @RequestParam(required = false) Long maxPrice) {
+
+        List<Map<String, Object>> tours = tourService.searchTours(locationOrSlug, minPrice, maxPrice);
 
         if (tours.isEmpty()) {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "No tours found for location: " + location);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.noContent().build();
         }
 
         return ResponseEntity.ok(tours);
     }
 
+
+
+//    Lấy tour bằng slug
+    @GetMapping("slug/{slug}")
+    public ResponseEntity<Tour> getTourBySlug(@PathVariable String slug) {
+        Tour tour = tourService.findBySlug(slug);
+        if (tour == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(tour);
+    }
+
+//    Cập nhật avatar
     @PostMapping("/{tourId}/upload-avatar")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> uploadAvatar(
             @PathVariable String tourId,
             @RequestParam("file") MultipartFile file) {
@@ -81,7 +123,9 @@ public class TourController {
         return ResponseEntity.ok(response);
     }
 
+//    Cập nhật gallery
     @PostMapping("/{tourId}/upload-gallery")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, List<String>>> uploadGallery(
             @PathVariable String tourId,
             @RequestParam("files") List<MultipartFile> files) {
@@ -99,7 +143,11 @@ public class TourController {
         return ResponseEntity.ok(response);
     }
 
+
+
+
     @DeleteMapping("/{tourId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> deleteTour(@PathVariable String tourId) {
         tourService.deleteTour(tourId);
 
@@ -109,10 +157,6 @@ public class TourController {
 
         return ResponseEntity.ok(response);
     }
-
-
-
-
 
 
 }

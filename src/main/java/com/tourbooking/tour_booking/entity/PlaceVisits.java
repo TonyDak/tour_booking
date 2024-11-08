@@ -43,11 +43,7 @@ public class PlaceVisits {
     )
     private Place place;
 
-    public String getPlaceId() {
-        return place != null ? place.getId() : null;
-    }
 
-    
 
 
 }
