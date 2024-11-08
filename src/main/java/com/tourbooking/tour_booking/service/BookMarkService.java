@@ -11,7 +11,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -49,5 +53,37 @@ public class BookMarkService {
             return "Tour added to bookmark";
         }
     }
+    public List<Map<String, Object>> getBookmarkedTours() {
+        var context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<BookMark> bookmarks = bookMarkRepository.findAllByUserId(user.getId());
+
+        return bookmarks.stream()
+                .map(bookmark -> {
+                    Map<String, Object> tourSummary = new LinkedHashMap<>();
+                    Tour tour = bookmark.getTour();
+                    tourSummary.put("id", tour.getId());
+                    tourSummary.put("slug", tour.getSlug());
+                    tourSummary.put("title", tour.getTitle());
+                    tourSummary.put("avt", tour.getAvt());
+                    tourSummary.put("price", tour.getPrice());
+                    tourSummary.put("location", tour.getLocation() != null ? tour.getLocation().getName() : null);
+                    return tourSummary;
+                })
+                .collect(Collectors.toList());
+    }
+
+
+    public boolean isTourBookmarked(String tourId) {
+        var context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+
+        return bookMarkRepository.findByTourIdAndUserId(tourId, user.getId()).isPresent();
+    }
+
+
 
 }

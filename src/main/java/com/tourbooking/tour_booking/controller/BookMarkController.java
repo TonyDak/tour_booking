@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -17,8 +18,10 @@ import java.util.Map;
 public class BookMarkController {
     private final BookMarkService bookMarkService;
 
+
+//    Thêm/xóa tour vào bookmark
     @PostMapping("/{tourId}")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<String> toggleBookmark(@PathVariable String tourId) {
         try {
             String message = bookMarkService.toggleBookmark(tourId);
@@ -29,5 +32,19 @@ public class BookMarkController {
     }
 
 
+//    Danh sách tour đã bookmark
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public ResponseEntity<List<Map<String, Object>>> getBookmarkedTours() {
+        List<Map<String, Object>> bookmarkedTours = bookMarkService.getBookmarkedTours();
+        return ResponseEntity.ok(bookmarkedTours);
+    }
 
+
+//    Check tour đã bookmark chưa
+    @GetMapping("/check/{tourId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public boolean checkIfTourBookmarked(@PathVariable String tourId) {
+        return bookMarkService.isTourBookmarked(tourId);
+    }
 }

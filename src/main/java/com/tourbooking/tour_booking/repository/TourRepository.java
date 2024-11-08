@@ -11,11 +11,14 @@ public interface TourRepository extends JpaRepository<Tour, String> {
 
     List<Tour> findByLocationNameContainingIgnoreCase(String locationName);
 
+    public List<Tour> findBySlugContainingIgnoreCase(String slug);
+
+
     boolean existsBySlug(String slug);
 
-    List<Tour> findByTitleContainingIgnoreCase(String title);
-
     Optional<Tour> findBySlug(String slug);
+
+    List<Tour> findTop10ByOrderByIdAsc();
 
 
 

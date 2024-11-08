@@ -87,7 +87,7 @@ public class TourService {
     }
 
     @Transactional
-    public TourCreate updateTour(String tourId, TourCreate tourCreate) {
+    public Tour updateTour(String tourId, TourCreate tourCreate) {
 
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new RuntimeException("Tour not found with ID: " + tourId));
@@ -101,25 +101,15 @@ public class TourService {
         }
         String baseSlug = toSlug(tourCreate.getTitle());
 
-        if (!tourCreate.getTitle().equals(tour.getTitle())){
 
-            String uniqueSlug = baseSlug;
-            int counter = 1;
+        tour.setSlug(baseSlug);
 
-            while (tourRepository.existsBySlug(uniqueSlug)) {
-                uniqueSlug = baseSlug + "-" + counter;
-                counter++;
-            }
 
-            tour.setSlug(uniqueSlug);
-        }
-        else {
-            tour.setSlug(tourCreate.getSlug());
-        }
+        scheduleRepository.deleteAllByTourId(tourId);
+        placeVisitRepository.deleteAllByTourId(tourId);
+        itineraryRepository.deleteAllByTourId(tourId);
 
-//        scheduleRepository.deleteAllByTourId(tourId);
-//        placeVisitRepository.deleteAllByTourId(tourId);
-//        itineraryRepository.deleteAllByTourId(tourId);
+
 
 
         List<Schedule> newSchedules = tourCreate.getSchedules().stream()
@@ -129,6 +119,8 @@ public class TourService {
                     return schedule;
                 }).collect(Collectors.toList());
         scheduleRepository.saveAll(newSchedules);
+
+
 
         // Xử lý các itineraries mới
         List<Itinerary> newItineraries = tourCreate.getItineraries().stream()
@@ -154,7 +146,7 @@ public class TourService {
         // Lưu tour sau khi cập nhật
         tourRepository.save(tour);
 
-        return tourMapper.toTourCreate(tour);
+        return tour;
 
     }
 
@@ -166,6 +158,23 @@ public class TourService {
         return tourRepository.findAll();
     }
 
+
+    public List<Map<String, Object>> getOutstandingTour() {
+        List<Tour> tours = tourRepository.findTop10ByOrderByIdAsc();
+
+        return tours.stream()
+                .map(tour -> {
+                    Map<String, Object> tourSummary = new LinkedHashMap<>();
+                    tourSummary.put("id", tour.getId());
+                    tourSummary.put("slug", tour.getSlug());
+                    tourSummary.put("title", tour.getTitle());
+                    tourSummary.put("avt", tour.getAvt());
+                    tourSummary.put("price", tour.getPrice());
+                    tourSummary.put("location", tour.getLocation() != null ? tour.getLocation().getName() : null);
+                    return tourSummary;
+                })
+                .collect(Collectors.toList());
+    }
 
 
     public List<Map<String, Object>> getAllTourSummaries() {
@@ -257,13 +266,28 @@ public class TourService {
         return tourDetails;
     }
 
+    public List<Map<String, Object>> searchTours(String locationOrSlug, Long minPrice, Long maxPrice) {
 
-    public List<Map<String, Object>> getToursByLocation(String locationName) {
-        List<Tour> tours = tourRepository.findByLocationNameContainingIgnoreCase(locationName);
+        String searchSlug = toSlug(locationOrSlug); // Ví dụ: Hà Nội -> ha-noi
+
+        List<Tour> toursByLocation = tourRepository.findByLocationNameContainingIgnoreCase(locationOrSlug);
+
+        List<Tour> toursBySlug = tourRepository.findBySlugContainingIgnoreCase(searchSlug);
+
+        Set<Tour> tours = new HashSet<>();
+        tours.addAll(toursByLocation);
+        tours.addAll(toursBySlug);
+
+        if (minPrice != null && maxPrice != null) {
+            tours = tours.stream()
+                    .filter(t -> t.getPrice() >= minPrice && t.getPrice() <= maxPrice)
+                    .collect(Collectors.toSet());
+        }
 
         if (tours.isEmpty()) {
             return Collections.emptyList();
         }
+
 
         return tours.stream()
                 .map(tour -> {
@@ -278,6 +302,8 @@ public class TourService {
                 })
                 .collect(Collectors.toList());
     }
+
+
 
 
 
@@ -324,6 +350,12 @@ public class TourService {
         return tourRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Tour not found with slug: " + slug));
     }
+
+
+
+
+
+
 
 
 
