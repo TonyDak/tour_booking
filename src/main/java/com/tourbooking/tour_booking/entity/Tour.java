@@ -17,7 +17,7 @@ public class Tour {
     private String title;
     private String slug;
     private String avt;
-    @Column(length = 10000)
+    @Column(length = 2000)
     private String highlight;
     private Double price;
     private Integer total_days;
@@ -25,6 +25,7 @@ public class Tour {
     private LocalDate end_days;
     private LocalDate bookable_start_date;
     private LocalDate bookable_end_date;
+    @Column(length = 2000)
     private String policy;
     private Integer min_booking_traveller;
 

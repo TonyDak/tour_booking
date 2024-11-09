@@ -18,7 +18,7 @@ public class Gallery {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    private String extensions;
+    private String path;
 
     @JsonIgnore
     @ManyToOne(cascade = CascadeType.PERSIST)
