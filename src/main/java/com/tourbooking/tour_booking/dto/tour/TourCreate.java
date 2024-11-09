@@ -27,6 +27,8 @@ public class TourCreate {
 
     String avt;
 
+    String highlight;
+
     String total_days;
     String start_days;
     String end_days;
