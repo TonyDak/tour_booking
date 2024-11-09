@@ -95,12 +95,9 @@ public class TourController {
 
 //    Lấy tour bằng slug
     @GetMapping("slug/{slug}")
-    public ResponseEntity<Tour> getTourBySlug(@PathVariable String slug) {
-        Tour tour = tourService.findBySlug(slug);
-        if (tour == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(tour);
+    public ResponseEntity<Map<String, Object>> getTourBySlug(@PathVariable String slug) {
+        Map<String, Object> tourDetails = tourService.getTourDetailsBySlug(slug);
+        return ResponseEntity.ok(tourDetails);
     }
 
 //    Cập nhật avatar

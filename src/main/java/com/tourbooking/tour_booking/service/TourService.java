@@ -341,15 +341,80 @@ public class TourService {
     }
 
     private String toSlug(String input) {
+        input = input.replace("đ", "d").replace("Đ", "D");
         String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
         String noDiacritics = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
         return noDiacritics.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
     }
 
-    public Tour findBySlug(String slug) {
-        return tourRepository.findBySlug(slug)
+    public Map<String, Object> getTourDetailsBySlug(String slug) {
+        // Tìm tour theo slug
+        Tour tour = tourRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Tour not found with slug: " + slug));
+
+        // Tạo map chi tiết tour
+        Map<String, Object> tourDetails = new LinkedHashMap<>();
+        tourDetails.put("id", tour.getId());
+        tourDetails.put("title", tour.getTitle());
+        tourDetails.put("slug", tour.getSlug());
+        tourDetails.put("avt", tour.getAvt());
+        tourDetails.put("price", tour.getPrice());
+        tourDetails.put("location", tour.getLocation() != null ? tour.getLocation().getName() : null);
+        tourDetails.put("total_days", tour.getTotal_days());
+        tourDetails.put("start_days", tour.getStart_days());
+        tourDetails.put("end_days", tour.getEnd_days());
+        tourDetails.put("bookable_start_date", tour.getBookable_start_date());
+        tourDetails.put("bookable_end_date", tour.getBookable_end_date());
+        tourDetails.put("policy", tour.getPolicy());
+        tourDetails.put("min_booking_traveller", tour.getMin_booking_traveller());
+
+        // Thêm galleries
+        List<String> galleries = tour.getGalleries().stream()
+                .map(Gallery::getExtensions)
+                .collect(Collectors.toList());
+        tourDetails.put("galleries", galleries);
+
+        // Thêm schedules
+        List<Map<String, Object>> schedules = tour.getSchedules().stream()
+                .map(schedule -> {
+                    Map<String, Object> scheduleMap = new LinkedHashMap<>();
+                    scheduleMap.put("start_day", schedule.getStart_day());
+                    scheduleMap.put("end_day", schedule.getEnd_day());
+                    scheduleMap.put("slot_booked", schedule.getSlot_booked());
+                    scheduleMap.put("max_slots", schedule.getMax_slots());
+                    scheduleMap.put("is_refundable", schedule.getIs_refundable());
+                    return scheduleMap;
+                })
+                .collect(Collectors.toList());
+        tourDetails.put("schedules", schedules);
+
+        // Thêm itineraries
+        List<Map<String, Object>> itineraries = tour.getItineraries().stream()
+                .map(itinerary -> {
+                    Map<String, Object> itineraryMap = new LinkedHashMap<>();
+                    itineraryMap.put("title", itinerary.getTitle());
+                    itineraryMap.put("day_no", itinerary.getDay_no());
+
+                    List<Map<String, Object>> placeVisits = itinerary.getPlaceVisits().stream()
+                            .map(placeVisit -> {
+                                Map<String, Object> placeVisitMap = new LinkedHashMap<>();
+                                placeVisitMap.put("start_time", placeVisit.getStart_time());
+                                placeVisitMap.put("end_time", placeVisit.getEnd_time());
+                                placeVisitMap.put("description", placeVisit.getDescription());
+                                placeVisitMap.put("place", placeVisit.getPlace() != null ? placeVisit.getPlace().getName() : null);
+                                return placeVisitMap;
+                            })
+                            .collect(Collectors.toList());
+                    itineraryMap.put("placeVisits", placeVisits);
+
+                    return itineraryMap;
+                })
+                .collect(Collectors.toList());
+        tourDetails.put("itineraries", itineraries);
+
+        return tourDetails;
     }
+
 
 
 
