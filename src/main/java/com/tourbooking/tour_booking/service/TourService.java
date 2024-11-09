@@ -227,7 +227,7 @@ public class TourService {
 
         // Add galleries
         List<String> galleries = tour.getGalleries().stream()
-                .map(Gallery::getExtensions)
+                .map(Gallery::getPath)
                 .collect(Collectors.toList());
         tourDetails.put("galleries", galleries);
 
@@ -331,7 +331,7 @@ public class TourService {
         List<Gallery> galleries = galleryUrls.stream()
                 .map(url -> {
                     Gallery gallery = new Gallery();
-                    gallery.setExtensions(url);
+                    gallery.setPath(url);
                     gallery.setTour(tour);
                     return gallery;
                 })
@@ -376,7 +376,7 @@ public class TourService {
 
         // Thêm galleries
         List<String> galleries = tour.getGalleries().stream()
-                .map(Gallery::getExtensions)
+                .map(Gallery::getPath)
                 .collect(Collectors.toList());
         tourDetails.put("galleries", galleries);
 

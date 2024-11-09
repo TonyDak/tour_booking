@@ -4,13 +4,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,7 +18,10 @@ public class PlaceVisits {
     private String id;
     private String start_time;
     private String end_time;
+
+    @Column(length = 2000)
     private String description;
+    private Integer order_number;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(

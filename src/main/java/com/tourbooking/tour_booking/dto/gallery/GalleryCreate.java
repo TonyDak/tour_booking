@@ -17,11 +17,11 @@ import com.tourbooking.tour_booking.entity.Gallery;
 
 public class GalleryCreate {
     @NotBlank
-    String extensions;
+    String path;
 
     @JsonCreator
-    public GalleryCreate(@JsonProperty("extensions") String extensions) {
-        this.extensions = extensions;
+    public GalleryCreate(@JsonProperty("path") String path) {
+        this.path = path;
     }
 
 
