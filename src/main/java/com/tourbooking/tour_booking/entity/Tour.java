@@ -2,16 +2,8 @@ package com.tourbooking.tour_booking.entity;
 
 import java.time.LocalDate;
 import java.util.List;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +17,8 @@ public class Tour {
     private String title;
     private String slug;
     private String avt;
+    @Column(length = 10000)
+    private String highlight;
     private Double price;
     private Integer total_days;
     private LocalDate start_days;

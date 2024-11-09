@@ -93,6 +93,12 @@ public class TourService {
                 .orElseThrow(() -> new RuntimeException("Tour not found with ID: " + tourId));
 
         tour.setTitle(tourCreate.getTitle());
+        tour.setPrice(tourCreate.getPrice());
+        tour.setHighlight(tourCreate.getHighlight());
+        tour.setMin_booking_traveller(Integer.parseInt(tourCreate.getMin_booking_traveller()));
+        tour.setPolicy(tourCreate.getPolicy());
+        tour.setTotal_days(Integer.parseInt(tourCreate.getTotal_days()));
+
 
         if (tourCreate.getLocationId() != null) {
             Location location = locationRepository.findById(tourCreate.getLocationId())
