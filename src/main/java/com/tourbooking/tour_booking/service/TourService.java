@@ -215,6 +215,7 @@ public class TourService {
         tourDetails.put("title", tour.getTitle());
         tourDetails.put("slug", tour.getSlug());
         tourDetails.put("avt", tour.getAvt());
+        tourDetails.put("highlight", tour.getHighlight());
         tourDetails.put("price", tour.getPrice());
         tourDetails.put("location", tour.getLocation() != null ? tour.getLocation().getName() : null);
         tourDetails.put("total_days", tour.getTotal_days());
@@ -365,6 +366,7 @@ public class TourService {
         tourDetails.put("title", tour.getTitle());
         tourDetails.put("slug", tour.getSlug());
         tourDetails.put("avt", tour.getAvt());
+        tourDetails.put("highlight", tour.getHighlight());
         tourDetails.put("price", tour.getPrice());
         tourDetails.put("location", tour.getLocation() != null ? tour.getLocation().getName() : null);
         tourDetails.put("total_days", tour.getTotal_days());
