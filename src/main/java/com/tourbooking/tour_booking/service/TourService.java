@@ -258,6 +258,7 @@ public class TourService {
                                 placeVisitMap.put("start_time", placeVisit.getStart_time());
                                 placeVisitMap.put("end_time", placeVisit.getEnd_time());
                                 placeVisitMap.put("description", placeVisit.getDescription());
+                                placeVisitMap.put("order_number", placeVisit.getOrder_number());
                                 placeVisitMap.put("place", placeVisit.getPlace() != null ? placeVisit.getPlace().getName() : null);
                                 return placeVisitMap;
                             })
@@ -407,6 +408,7 @@ public class TourService {
                                 placeVisitMap.put("start_time", placeVisit.getStart_time());
                                 placeVisitMap.put("end_time", placeVisit.getEnd_time());
                                 placeVisitMap.put("description", placeVisit.getDescription());
+                                placeVisitMap.put("order_number", placeVisit.getOrder_number());
                                 placeVisitMap.put("place", placeVisit.getPlace() != null ? placeVisit.getPlace().getName() : null);
                                 return placeVisitMap;
                             })
