@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,7 @@ public class BookMarkService {
             BookMark bookMark = new BookMark();
             bookMark.setTour(tour);
             bookMark.setUser(user);
+            bookMark.setCreatedAt(LocalDate.now());
 
             bookMarkRepository.save(bookMark);
             return "Tour added to bookmark";
@@ -65,11 +67,12 @@ public class BookMarkService {
                     Map<String, Object> tourSummary = new LinkedHashMap<>();
                     Tour tour = bookmark.getTour();
                     tourSummary.put("id", tour.getId());
-                    tourSummary.put("slug", tour.getSlug());
                     tourSummary.put("title", tour.getTitle());
+                    tourSummary.put("slug", tour.getSlug());
                     tourSummary.put("avt", tour.getAvt());
                     tourSummary.put("price", tour.getPrice());
                     tourSummary.put("location", tour.getLocation() != null ? tour.getLocation().getName() : null);
+                    tourSummary.put("createdAt", bookmark.getCreatedAt());
                     return tourSummary;
                 })
                 .collect(Collectors.toList());
