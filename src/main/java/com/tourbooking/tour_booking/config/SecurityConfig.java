@@ -34,6 +34,8 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/v1/tours/**").permitAll()
                                 .requestMatchers(HttpMethod.PUT, "/v1/tours/**").permitAll()
                                 .requestMatchers(HttpMethod.DELETE, "/v1/tours/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/v1/places/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/v1/locations/**").permitAll()
 
                                 .anyRequest().authenticated()
                 )

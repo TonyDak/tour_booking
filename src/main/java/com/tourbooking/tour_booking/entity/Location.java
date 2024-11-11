@@ -14,6 +14,8 @@ public class Location {
     @Id
     private String id;
     private String name;
+    private String avt;
+    private String description;
 
 
     @JsonIgnore

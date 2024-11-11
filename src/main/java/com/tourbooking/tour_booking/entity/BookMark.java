@@ -11,6 +11,8 @@ import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @Setter
@@ -36,4 +38,6 @@ public class BookMark {
         nullable = false
     )
     private User user;
+
+    private LocalDate createdAt;
 }

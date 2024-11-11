@@ -260,7 +260,7 @@ public class TourService {
                                 placeVisitMap.put("end_time", placeVisit.getEnd_time());
                                 placeVisitMap.put("description", placeVisit.getDescription());
                                 placeVisitMap.put("order_number", placeVisit.getOrder_number());
-                                placeVisitMap.put("place", placeVisit.getPlace() != null ? placeVisit.getPlace().getName() : null);
+                                placeVisitMap.put("place", placeVisit.getPlace() != null ? placeVisit.getPlace() : null);
                                 return placeVisitMap;
                             })
                             .collect(Collectors.toList());
@@ -411,7 +411,7 @@ public class TourService {
                                 placeVisitMap.put("end_time", placeVisit.getEnd_time());
                                 placeVisitMap.put("description", placeVisit.getDescription());
                                 placeVisitMap.put("order_number", placeVisit.getOrder_number());
-                                placeVisitMap.put("place", placeVisit.getPlace() != null ? placeVisit.getPlace().getName() : null);
+                                placeVisitMap.put("place", placeVisit.getPlace() != null ? placeVisit.getPlace() : null);
                                 return placeVisitMap;
                             })
                             .collect(Collectors.toList());
@@ -424,6 +424,7 @@ public class TourService {
 
         return tourDetails;
     }
+
 
 
 
