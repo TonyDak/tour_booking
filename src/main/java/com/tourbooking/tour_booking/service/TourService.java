@@ -274,9 +274,25 @@ public class TourService {
         return tourDetails;
     }
 
+    public List<Map<String, Object>> getToursByLocationName(String locationId) {
+        List<Tour> tours = tourRepository.findAllByLocationName(locationId);
+        return tours.stream()
+                .map(tour -> {
+                    Map<String, Object> tourSummary = new LinkedHashMap<>();
+                    tourSummary.put("id", tour.getId());
+                    tourSummary.put("title", tour.getTitle());
+                    tourSummary.put("slug", tour.getSlug());
+                    tourSummary.put("avt", tour.getAvt());
+                    tourSummary.put("price", tour.getPrice());
+                    tourSummary.put("locationName", tour.getLocation().getName());
+                    return tourSummary;
+                })
+                .collect(Collectors.toList());
+    }
+
     public List<Map<String, Object>> searchTours(String locationOrSlug, Long minPrice, Long maxPrice) {
 
-        String searchSlug = toSlug(locationOrSlug); // Ví dụ: Hà Nội -> ha-noi
+        String searchSlug = toSlug(locationOrSlug);
 
         List<Tour> toursByLocation = tourRepository.findByLocationNameContainingIgnoreCase(locationOrSlug);
 

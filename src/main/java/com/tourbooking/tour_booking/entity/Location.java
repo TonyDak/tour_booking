@@ -16,17 +16,18 @@ public class Location {
     private String name;
     private String avt;
     private String description;
-
+    private Double latitude;
+    private Double longitude;
+    private Integer total_tour;
 
     @JsonIgnore
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL)
     private List<Tour> tours;
 
+    @PostLoad
+    public void updateTotalTour() {
+        this.total_tour = tours != null ? tours.size() : 0;
 
-
-
-
-
-
+    }
 
 }
