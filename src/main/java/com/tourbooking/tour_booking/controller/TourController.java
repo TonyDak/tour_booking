@@ -74,6 +74,12 @@ public class TourController {
     }
 
 
+// Lấy tat ca tour theo tên Location
+    @GetMapping("/location/{locationName}")
+    public ResponseEntity<List<Map<String, Object>>> getToursByLocation(@PathVariable String locationName) {
+        List<Map<String, Object>> tours = tourService.getToursByLocationName(locationName);
+        return ResponseEntity.ok(tours);
+    }
 
    // Tìm kiếm tour theo location, slug, giá
     @GetMapping("/search")
