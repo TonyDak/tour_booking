@@ -40,6 +40,7 @@ public class UserController {
         return response;
     }
 
+    
     @GetMapping("/admin/search-email")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Page<AdminUserInfoRequest>> getUsersByEmail(@RequestParam String email,

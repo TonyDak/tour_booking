@@ -46,6 +46,7 @@ public class UserService {
         return userRepository.findByPhoneContainingIgnoreCase(phone, PageRequest.of(page, size)).map(userMapper::toAdminUserInfo);
     }
 
+
     public UserInfoRequest getUser(String id) {
         User user = userRepository.findById(id).orElseThrow();
         return userMapper.toUserInfo(user);
