@@ -14,6 +14,7 @@ import org.mapstruct.MappingTarget;
 public interface UserMapper {
 
     UserInfoRequest toUserInfo(User user);
+
     AdminUserInfoRequest toAdminUserInfo(User user);
 
     User toUser(RegisterRequest registerRequest);

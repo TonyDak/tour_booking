@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class AdminUserInfoRequest {
+
     private String email;
     private String phone_number;
     private String user_name;
