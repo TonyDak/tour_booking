@@ -20,7 +20,7 @@ spring:
             hibernate:
                 dialect: org.hibernate.dialect.MySQL8Dialect
     mail:
-        host:
+        host: ${MAIL_HOST}
         port: ${MAIL_PORT}
         username: ${MAIL_USERNAME}
         password: ${MAIL_PASSWORD}
@@ -30,6 +30,12 @@ spring:
                     auth: true
                     starttls:
                         enable: true
+    payment:
+        vnPay:
+            tmnCode: ${TMN_CODE}
+            hashSecret: ${VNPAY_KEY}
+            returnUrl: ${VNPAY_RETURN_URL}
+            ipnUrl: ${VNPAY_URL}
 
     servlet:
       multipart:
