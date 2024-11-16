@@ -11,6 +11,5 @@ import java.io.Serializable;
 @Value
 @Data
 public class UpdateStatusRequest implements Serializable {
-    String userId;
     int status;
 }
