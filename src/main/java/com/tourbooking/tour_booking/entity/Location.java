@@ -21,7 +21,7 @@ public class Location {
     private Integer total_tour;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "location", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "location", cascade = CascadeType.PERSIST)
     private List<Tour> tours;
 
     @PostLoad

@@ -358,11 +358,17 @@ public class TourService {
         galleryRepository.saveAll(galleries);
     }
 
+    @Transactional
     public void deleteTour(String tourId) {
+
+
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new RuntimeException("Tour not found with ID: " + tourId));
+
+        
         tourRepository.delete(tour);
     }
+
 
     private String toSlug(String input) {
         input = input.replace("đ", "d").replace("Đ", "D");
