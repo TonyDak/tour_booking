@@ -1,16 +1,15 @@
 package com.tourbooking.tour_booking.service;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import com.tourbooking.tour_booking.dto.user.*;
 import com.tourbooking.tour_booking.mapper.UserMapper;
-import com.tourbooking.tour_booking.repository.RoleRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,17 +30,26 @@ public class UserService {
     private final JavaMailSender mailSender;
 
 
-    public List<UserInfoRequest> getUsers(){
-        List<UserInfoRequest> users;
-        users = userRepository.findAll().stream()
-                .map(userMapper::toUserInfoUpdate)
-                .collect(Collectors.toList());
-        return users;
+    public Page<AdminUserInfoRequest> getUsers(int page, int size) {
+        return userRepository.findAll(PageRequest.of(page, size)).map(userMapper::toAdminUserInfo);
+
     }
+    public Page<AdminUserInfoRequest> getUsersByName(String userName, int page, int size) {
+        return userRepository.findByNameContainingIgnoreCase(userName, PageRequest.of(page, size)).map(userMapper::toAdminUserInfo);
+    }
+
+    public Page<AdminUserInfoRequest> getUsersByEmail(String email, int page, int size) {
+        return userRepository.findByEmailContainingIgnoreCase(email, PageRequest.of(page, size)).map(userMapper::toAdminUserInfo);
+    }
+
+    public Page<AdminUserInfoRequest> getUsersByPhone(String phone, int page, int size) {
+        return userRepository.findByPhoneContainingIgnoreCase(phone, PageRequest.of(page, size)).map(userMapper::toAdminUserInfo);
+    }
+
 
     public UserInfoRequest getUser(String id) {
         User user = userRepository.findById(id).orElseThrow();
-        return userMapper.toUserInfoUpdate(user);
+        return userMapper.toUserInfo(user);
     }
 
     public UserInfoRequest getMyInfo() {
@@ -50,21 +58,32 @@ public class UserService {
         User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new RuntimeException("User not found")
         );
-        return userMapper.toUserInfoUpdate(user);
+        return userMapper.toUserInfo(user);
     }
 
 
-    public void updateStatus(UpdateStatusRequest request) {
-        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
+    public void updateStatus(String id,UpdateStatusRequest request) {
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
         user.setStatus(request.getStatus());
         userRepository.save(user);
     }
 
-    public UserUpdateRequest updateUser(String id, UserUpdateRequest userUpdateRequest) {
-        User user = userRepository.findById(id).orElseThrow();
+    public UserUpdateRequest updateUser(UserUpdateRequest userUpdateRequest) {
+        var context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new RuntimeException("User not found")
+        );
         userMapper.updateUserFromDto(userUpdateRequest, user);
         userRepository.save(user);
         return userUpdateRequest;
+    }
+
+    public AdminUserUpdateRequest AdminUpdateUser(AdminUserUpdateRequest adminUserUpdateRequest) {
+        User user = userRepository.findByEmail(adminUserUpdateRequest.getEmail()).orElseThrow(() -> new RuntimeException("User not found"));
+        userMapper.AdminUpdateUserFromDto(adminUserUpdateRequest, user);
+        userRepository.save(user);
+        return adminUserUpdateRequest;
     }
 
     public void changePassword(ChangePasswordRequest changePasswordRequest) {
