@@ -22,7 +22,7 @@ public class BookMark {
     private String id;
 
     @JsonIgnore
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(
         name = "tour_id",
         referencedColumnName = "id",

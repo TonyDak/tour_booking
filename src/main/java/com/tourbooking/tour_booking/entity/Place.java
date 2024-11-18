@@ -25,6 +25,6 @@ public class Place {
     private String name;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "place", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "place", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlaceVisits> placeVisits;
 }

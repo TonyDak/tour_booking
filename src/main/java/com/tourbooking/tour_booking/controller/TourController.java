@@ -6,6 +6,7 @@ import com.tourbooking.tour_booking.entity.Tour;
 import com.tourbooking.tour_booking.service.ImageService;
 import com.tourbooking.tour_booking.service.TourService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -146,20 +147,19 @@ public class TourController {
         return ResponseEntity.ok(response);
     }
 
-
-
-
-    @DeleteMapping("/{tourId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, String>> deleteTour(@PathVariable String tourId) {
+//    Xóa
+@DeleteMapping("/{tourId}")
+public ResponseEntity<String> deleteTour(@PathVariable String tourId) {
+    try {
         tourService.deleteTour(tourId);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Tour deleted successfully");
-        response.put("tourId", tourId);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok("Tour with ID " + tourId + " has been deleted.");
+    } catch (RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
+}
+
+
+
 
 
 }

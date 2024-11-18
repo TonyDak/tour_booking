@@ -25,6 +25,7 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -76,8 +77,12 @@ public class AuthenticationService {
         if(user.getStatus() != 1){
             throw new RuntimeException("User is not active");
         }
+
+        List<String> bookmarked = user.getBookMarks().stream()
+                .map(bookmark -> bookmark.getTour().getId())
+                .collect(Collectors.toList());
         var token = generateToken(user);
-        return  AuthenticationResponse.builder().authenticated(authenticated).token(token).build();
+        return  AuthenticationResponse.builder().authenticated(authenticated).token(token).bookmarked(bookmarked).build();
     }
 
     public void logout(LogoutRequest request) throws ParseException, JOSEException {
