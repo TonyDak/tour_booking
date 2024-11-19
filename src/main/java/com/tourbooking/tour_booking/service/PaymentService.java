@@ -2,6 +2,7 @@ package com.tourbooking.tour_booking.service;
 
 import com.tourbooking.tour_booking.config.VNPayConfig;
 import com.tourbooking.tour_booking.dto.payment.VNPayResponse;
+import com.tourbooking.tour_booking.entity.Payment;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
@@ -27,6 +28,8 @@ import java.util.stream.Collectors;
 public class PaymentService {
     private final VNPayConfig vnPayConfig;
     private final JavaMailSender mailSender;
+    private final NotificationAdminService notificationAdminService;
+
 
 
     //create vnPay payment
@@ -109,6 +112,21 @@ public class PaymentService {
                             // Here Code update PaymnentStatus = 1 into your Database bill
 
                             sendEmailPaymentSucces("duckg2083999@gmail.com", "tourName", "billId", LocalDateTime.now(), "userName", "phone", "address", 1000000);
+
+                            String adminEmail = "admin@example.com";
+                            String userName = request.getParameter("vnp_CustomerName");
+                            String billId = request.getParameter("vnp_TxnRef");
+
+
+                            // Create notification and send email to admin
+                            notificationAdminService.createNotificationToAdmin(
+                                    "Có khách hàng thanh toán đặt tour",
+                                    new Payment(),
+                                    adminEmail,
+                                    userName,
+                                    billId
+
+                            );
                             return VNPayResponse.builder()
                                     .code("00")
                                     .message("VNPay - Thanh toán thành công")
@@ -250,4 +268,7 @@ public class PaymentService {
         // Gửi email
         mailSender.send(message);
     }
+
+
+
 }
