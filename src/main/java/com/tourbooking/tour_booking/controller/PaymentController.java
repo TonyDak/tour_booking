@@ -2,14 +2,20 @@ package com.tourbooking.tour_booking.controller;
 
 import com.tourbooking.tour_booking.dto.ApiResponse;
 import com.tourbooking.tour_booking.dto.payment.VNPayResponse;
+import com.tourbooking.tour_booking.entity.Bill;
+import com.tourbooking.tour_booking.entity.Payment;
+import com.tourbooking.tour_booking.entity.Tour;
+import com.tourbooking.tour_booking.service.BillService;
 import com.tourbooking.tour_booking.service.PaymentService;
+import com.tourbooking.tour_booking.service.TourService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
 
@@ -18,6 +24,44 @@ import java.io.UnsupportedEncodingException;
 @RequestMapping("/v1/payment")
 public class PaymentController {
     private final PaymentService paymentService;
+    private final BillService billService;
+    private final TourService tourService;
+
+    @GetMapping("/tour-detail")
+    public ResponseEntity<Tour> getTourDetail(@RequestParam String tourId) {
+        Tour tour = tourService.getTourById(tourId);
+        return ResponseEntity.ok(tour);
+    }
+
+    @PostMapping("/tour-detail")
+    public String processTourDetail(@Valid @ModelAttribute("payment") Payment payment, BindingResult result) {
+        if (result.hasErrors()) {
+            return "tour-detail";
+        }
+
+        Payment savedPayment = paymentService.saveInitialPayment(payment);
+        return "redirect:/booking/payment/" + savedPayment.getId();
+    }
+
+    @GetMapping("/payment/{paymentId}")
+    public ResponseEntity<Payment> getPaymentForm(@PathVariable String paymentId) {
+        Payment payment = paymentService.getPaymentById(paymentId);
+        return ResponseEntity.ok(payment);
+    }
+
+
+    @PostMapping("/payment")
+    public String processPayment(@Valid @ModelAttribute("payment") Payment payment, BindingResult result) {
+        if (result.hasErrors()) {
+            return "payment-form";
+        }
+
+        Payment updatedPayment = paymentService.updatePayment(payment);
+        Bill draftBill = billService.createBillFromPayment(updatedPayment);
+        return "redirect:/booking/payment/information/" + draftBill.getId();
+    }
+
+
     @GetMapping("/vn-pay")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ApiResponse<VNPayResponse> pay(HttpServletRequest request) {
@@ -35,5 +79,5 @@ public class PaymentController {
         response.setResult(paymentService.verifyVNPayTransaction(request));
         return response;
     }
-    
+
 }

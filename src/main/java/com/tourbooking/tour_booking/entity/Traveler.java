@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,7 +19,7 @@ public class Traveler {
     private String email;
     private String phoneNumber;
     private String name;
-    private LocalDateTime dateOfBirth;
+    private LocalDate dateOfBirth;
     private String gender;
 
     @Column(nullable = false)
@@ -46,4 +47,6 @@ public class Traveler {
             throw new IllegalArgumentException("Type không hợp lệ. Vui lòng nhập 1 (người lớn) hoặc 2 (trẻ em).");
         }
     }
+
+
 }

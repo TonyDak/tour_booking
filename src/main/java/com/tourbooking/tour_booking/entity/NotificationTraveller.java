@@ -26,7 +26,7 @@ public class NotificationTraveller {
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
-    private boolean read;
+    private Boolean isRead;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bill_id", nullable = false)

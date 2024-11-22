@@ -16,13 +16,6 @@ public class NotificationTravellerService {
     @Autowired
     private NotificationTravellerRepository notificationTravellerRepository;
 
-    /**
-     * Tạo thông báo cho traveler từ một hóa đơn (Bill).
-     *
-     * @param message Nội dung thông báo.
-     * @param bill    Hóa đơn liên quan đến thông báo.
-     * @return Thông báo đã được lưu trong cơ sở dữ liệu.
-     */
     @Transactional
     public NotificationTraveller createAndSendNotification(String message, Bill bill) {
         if (bill == null) {
@@ -33,7 +26,7 @@ public class NotificationTravellerService {
         NotificationTraveller notification = new NotificationTraveller();
         notification.setMessage(message);
         notification.setBill(bill);
-        notification.setRead(false);
+        notification.setIsRead(false);
         NotificationTraveller savedNotification = notificationTravellerRepository.save(notification);
 
 
@@ -42,12 +35,7 @@ public class NotificationTravellerService {
 
         return savedNotification;
     }
-    /**
-     * Lấy danh sách thông báo chưa đọc của một traveler, sắp xếp theo thời gian tạo.
-     *
-     * @param travelerId ID của traveler.
-     * @return Danh sách thông báo chưa đọc.
-     */
+
     public List<NotificationTraveller> getUnreadNotificationsForTraveller(String travelerId) {
         if (travelerId == null || travelerId.isEmpty()) {
             throw new IllegalArgumentException("Traveler ID cannot be null or empty");
@@ -56,12 +44,7 @@ public class NotificationTravellerService {
         return notificationTravellerRepository.findByBillTravelerIdAndIsReadOrderByCreatedAtDesc(travelerId, false);
     }
 
-    /**
-     * Đánh dấu một thông báo là đã đọc.
-     *
-     * @param id ID của thông báo.
-     * @return Thông báo sau khi đã cập nhật trạng thái.
-     */
+   
     @Transactional
     public NotificationTraveller markAsRead(String id) {
         if (id == null || id.isEmpty()) {
@@ -71,7 +54,7 @@ public class NotificationTravellerService {
         NotificationTraveller notification = notificationTravellerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found with id: " + id));
 
-        notification.setRead(true);
+        notification.setIsRead(true);
         return notificationTravellerRepository.save(notification);
     }
 

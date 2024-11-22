@@ -38,7 +38,7 @@ public class Bill {
     @Column(nullable = false)
     private String phone;
     @Column(nullable = false)
-    private LocalDate birthDate;
+    private LocalDate dateOfBirth;
     @Column(nullable = false)
     private String gender;
     @Column(nullable = false)

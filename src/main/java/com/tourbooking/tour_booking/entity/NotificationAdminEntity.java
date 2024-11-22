@@ -24,7 +24,7 @@ public class NotificationAdminEntity {
     private String message;
 
     @Column(nullable = false)
-    private boolean read;
+    private Boolean isRead;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_id", nullable = false)

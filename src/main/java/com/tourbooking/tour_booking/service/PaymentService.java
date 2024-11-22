@@ -2,7 +2,10 @@ package com.tourbooking.tour_booking.service;
 
 import com.tourbooking.tour_booking.config.VNPayConfig;
 import com.tourbooking.tour_booking.dto.payment.VNPayResponse;
+import com.tourbooking.tour_booking.entity.Bill;
 import com.tourbooking.tour_booking.entity.Payment;
+import com.tourbooking.tour_booking.repository.BillRepository;
+import com.tourbooking.tour_booking.repository.PaymentRepository;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
@@ -29,9 +32,22 @@ public class PaymentService {
     private final VNPayConfig vnPayConfig;
     private final JavaMailSender mailSender;
     private final NotificationAdminService notificationAdminService;
+    private final PaymentRepository paymentRepository;
+    private final BillRepository billRepository;
 
 
+    public Payment saveInitialPayment(Payment payment) {
+        return paymentRepository.save(payment);
+    }
 
+    public Payment getPaymentById(String paymentId) {
+        return paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("Payment not found with ID: " + paymentId));
+    }
+
+    public Payment updatePayment(Payment payment) {
+        return paymentRepository.save(payment);
+    }
     //create vnPay payment
     public VNPayResponse createVnPayPayment(HttpServletRequest request, String billId, String price) {
         long amount = Integer.parseInt(price) * 100L;
@@ -111,11 +127,19 @@ public class PaymentService {
                         {
                             // Here Code update PaymnentStatus = 1 into your Database bill
 
+                            String billId = request.getParameter("vnp_TxnRef");
+                            Bill bill = billRepository.findById(billId)
+                                    .orElseThrow(() -> new RuntimeException("Bill not found with ID: " + billId));
+
+                            // Update bill status to SUCCESS
+                            bill.setStatus(Bill.BillStatus.COMPLETED);
+                            billRepository.save(bill);
+
                             sendEmailPaymentSucces("duckg2083999@gmail.com", "tourName", "billId", LocalDateTime.now(), "userName", "phone", "address", 1000000);
 
                             String adminEmail = "admin@example.com";
                             String userName = request.getParameter("vnp_CustomerName");
-                            String billId = request.getParameter("vnp_TxnRef");
+
 
 
                             // Create notification and send email to admin
@@ -135,7 +159,13 @@ public class PaymentService {
                         else
                         {
                             // Here Code update PaymnentStatus = 2 into your Database bill
+                            String billId = request.getParameter("vnp_TxnRef");
+                            Bill bill = billRepository.findById(billId)
+                                    .orElseThrow(() -> new RuntimeException("Bill not found with ID: " + billId));
 
+                            // Update bill status to PAYMENT_FAILED
+                            bill.setStatus(Bill.BillStatus.PAYMENT_FAILED);
+                            billRepository.save(bill);
                             return VNPayResponse.builder()
                                     .code("01")
                                     .message("VNPay - Thanh toán thất bại")
@@ -268,7 +298,5 @@ public class PaymentService {
         // Gửi email
         mailSender.send(message);
     }
-
-
 
 }

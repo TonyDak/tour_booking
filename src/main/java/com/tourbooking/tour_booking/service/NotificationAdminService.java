@@ -50,7 +50,7 @@
                     .orElseThrow(() -> new ResourceNotFoundException("Tour not found with id: " + payment.getTour().getId()));
 
             notification.setTour(tour);
-            notification.setRead(false);
+            notification.setIsRead(false);
             NotificationAdminEntity savedNotification = notificationAdminRepository.save(notification);
 
             // Step 2: Send the email notification to admin
@@ -88,7 +88,7 @@
             NotificationAdminEntity notification = notificationAdminRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Notification not found with id: " + id));
 
-            notification.setRead(true);
+            notification.setIsRead(true);
             return notificationAdminRepository.save(notification);
         }
     }
