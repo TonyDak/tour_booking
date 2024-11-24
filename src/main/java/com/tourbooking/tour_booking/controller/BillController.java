@@ -71,16 +71,25 @@ public class BillController {
         }
     }
 
-    @PostMapping("/{id}/add-promotion")
-    public String addPromotion(@PathVariable String id, @RequestParam String promotionCode) {
-        billService.addPromotionToBill(id, promotionCode);
-        return "redirect:/bills/" + id;
+    @PostMapping("/{billId}/add-promotion")
+    public ResponseEntity<Bill> addPromotion(@PathVariable String billId, @RequestParam String promotionCode) {
+        Bill updatedBill = billService.addPromotionToBill(billId, promotionCode);
+        if (updatedBill != null) {
+            return ResponseEntity.ok(updatedBill);
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
-    @PostMapping("/{billId}/remove-promotion/{promotionId}")
-    public String removePromotion(@PathVariable String billId, @PathVariable String promotionId) {
-        billService.removePromotionFromBill(billId, promotionId);
-        return "redirect:/bills/" + billId;
+    @DeleteMapping("/{billId}/remove-promotion/{promotionId}")
+    public ResponseEntity<Bill> removePromotion(@PathVariable String billId, @PathVariable String promotionId) {
+        Bill updatedBill = billService.removePromotionFromBill(billId, promotionId);
+        if (updatedBill != null) {
+            return ResponseEntity.ok(updatedBill);
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
     }
+
 }
 
