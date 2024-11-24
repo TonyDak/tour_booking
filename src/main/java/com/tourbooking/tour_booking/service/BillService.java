@@ -2,8 +2,10 @@ package com.tourbooking.tour_booking.service;
 
 import com.tourbooking.tour_booking.entity.Bill;
 import com.tourbooking.tour_booking.entity.Payment;
+import com.tourbooking.tour_booking.entity.Promotion;
 import com.tourbooking.tour_booking.entity.Traveler;
 import com.tourbooking.tour_booking.repository.BillRepository;
+import com.tourbooking.tour_booking.repository.PromotionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,9 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class BillService {
@@ -24,6 +24,8 @@ public class BillService {
     @Autowired
     private NotificationTravellerService notificationTravellerService;
 
+    @Autowired
+    private PromotionRepository promotionRepository;
 
     @Autowired
     private PaymentToBillConverter paymentToBillConverter;
@@ -42,6 +44,43 @@ public class BillService {
         }
 
         return savedBill;
+    }
+    @Transactional
+    public Bill addPromotionToBill(String billId, String promotionCode) {
+        Bill bill = getBillById(billId);
+        if (bill == null) {
+            throw new RuntimeException("Bill not found with ID: " + billId);
+        }
+
+        Optional<Promotion> promotionOpt = promotionRepository.findByCode(promotionCode);
+        if (promotionOpt.isEmpty()) {
+            throw new RuntimeException("Promotion not found with code: " + promotionCode);
+        }
+
+        Promotion promotion = promotionOpt.get();
+        bill.addPromotion(promotion);
+        return billRepository.save(bill);
+    }
+
+    public List<Bill> getAllBills() {
+        return billRepository.findAll();
+    }
+    @Transactional
+    public Bill removePromotionFromBill(String billId, String promotionId) {
+
+        Bill bill = getBillById(billId);
+        if (bill == null) {
+            throw new RuntimeException("Bill not found with ID: " + billId);
+        }
+
+        Optional<Promotion> promotionOpt = promotionRepository.findById(promotionId);
+        if (promotionOpt.isEmpty()) {
+            throw new RuntimeException("Promotion not found with ID: " + promotionId);
+        }
+
+        Promotion promotion = promotionOpt.get();
+        bill.removePromotion(promotion);
+        return billRepository.save(bill);
     }
 
 
@@ -169,7 +208,9 @@ public class BillService {
             bill.setUser(updatedBill.getUser());
             bill.setTour(updatedBill.getTour());
             bill.setTraveler(updatedBill.getTraveler());
-            bill.setPromotion(updatedBill.getPromotionId());
+            Set<Promotion> updatedPromotions = new HashSet<>(updatedBill.getPromotions());
+            bill.getPromotions().clear();
+            bill.getPromotions().addAll(updatedPromotions);
             bill.setStatus(updatedBill.getStatus());
             bill.setPaymentMethod(updatedBill.getPaymentMethod());
             bill.setCancelReason(updatedBill.getCancelReason());

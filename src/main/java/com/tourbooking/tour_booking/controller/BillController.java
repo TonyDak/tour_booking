@@ -70,5 +70,17 @@ public class BillController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PostMapping("/{id}/add-promotion")
+    public String addPromotion(@PathVariable String id, @RequestParam String promotionCode) {
+        billService.addPromotionToBill(id, promotionCode);
+        return "redirect:/bills/" + id;
+    }
+
+    @PostMapping("/{billId}/remove-promotion/{promotionId}")
+    public String removePromotion(@PathVariable String billId, @PathVariable String promotionId) {
+        billService.removePromotionFromBill(billId, promotionId);
+        return "redirect:/bills/" + billId;
+    }
 }
 

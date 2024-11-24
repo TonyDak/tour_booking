@@ -3,7 +3,9 @@ package com.tourbooking.tour_booking.entity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -97,9 +99,13 @@ public class Bill {
     @JoinColumn(name = "traveler_id", referencedColumnName = "id", nullable = false)
     private Traveler traveler;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "promotion_id", referencedColumnName = "id", nullable = true)
-    private Promotion promotionId;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "bill_promotion",
+            joinColumns = @JoinColumn(name = "bill_id"),
+            inverseJoinColumns = @JoinColumn(name = "promotion_id")
+    )
+    private Set<Promotion> promotions = new HashSet<>();
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -153,4 +159,13 @@ public class Bill {
     public void setPromotion(Promotion promotionId) {
     }
 
+    public void addPromotion(Promotion promotion) {
+        this.promotions.add(promotion);
+        promotion.getBills().add(this);
+    }
+
+    public void removePromotion(Promotion promotion) {
+        this.promotions.remove(promotion);
+        promotion.getBills().remove(this);
+    }
 }

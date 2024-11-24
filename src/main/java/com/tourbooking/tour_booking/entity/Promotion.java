@@ -7,7 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -32,8 +34,8 @@ public class Promotion {
     private LocalDate end_time;
 
     //bill
-    @OneToMany(mappedBy = "promotion", cascade = CascadeType.PERSIST)
-    private List<Bill> bills;
+    @ManyToMany(mappedBy = "promotions")
+    private Set<Bill> bills = new HashSet<>();
 
 
 
