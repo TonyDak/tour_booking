@@ -19,7 +19,7 @@ public class PaymentToBillConverter {
         bill.setOthers(payment.getOthers());
         bill.setEmail(payment.getEmail());
         bill.setPhone(payment.getPhone());
-        bill.setBirthDate(payment.getBirthDate());
+        bill.setDateOfBirth(payment.getBirthDate());
         bill.setGender(payment.getGender());
         bill.setBookedAt(LocalDateTime.now());
         bill.setStatus(Bill.BillStatus.DRAFT);
