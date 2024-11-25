@@ -36,14 +36,38 @@ public class BillService {
 
         Bill savedBill = billRepository.save(bill);
 
-        Traveler traveler = savedBill.getTraveler();
-        if (traveler != null && traveler.getId() != null) {
-            String travelerId = traveler.getId();
-            String message = "Your booking has been successfully created. Bill ID: " + savedBill.getId();
-            notificationTravellerService.createAndSendNotification(message, savedBill);
+        List<Traveler> travelers = savedBill.getTravelers();
+        if (travelers != null && !travelers.isEmpty()) {
+            Traveler traveler = travelers.get(0);
+
+            // Kiểm tra và gửi thông báo cho traveler
+            if (traveler != null && traveler.getId() != null) {
+                String travelerId = traveler.getId();
+                String message = "Your booking has been successfully created. Bill ID: " + savedBill.getId();
+                notificationTravellerService.createAndSendNotification(message, savedBill);
+            }
         }
 
         return savedBill;
+    }
+
+
+    @Transactional
+    public Bill updateBillStatus(String billId, Bill.BillStatus newStatus, String cancelReason) {
+        Bill bill = getBillById(billId);
+        if (bill == null) {
+            throw new RuntimeException("Bill not found with ID: " + billId);
+        }
+
+        bill.setStatus(newStatus);
+        if (newStatus == Bill.BillStatus.CANCELLED) {
+            if (cancelReason == null || cancelReason.trim().isEmpty()) {
+                throw new IllegalArgumentException("Cancel reason is required for cancellation");
+            }
+            bill.setCancelReason(cancelReason);
+        }
+
+        return billRepository.save(bill);
     }
     @Transactional
     public Bill addPromotionToBill(String billId, String promotionCode) {
@@ -91,42 +115,66 @@ public class BillService {
             throw new RuntimeException("Bill not found with ID: " + billId);
         }
 
-        // Update bill with traveler information
+        // Cập nhật thông tin của Bill
         bill.setFullName(formData.get("fullName"));
         bill.setEmail(formData.get("email"));
         bill.setPhone(formData.get("phone"));
         bill.setSpecialRequirement(formData.get("specialRequirement"));
         bill.setOthers(formData.get("others"));
 
-        // Update date of birth if provided
+        // Cập nhật ngày sinh nếu có
         String dateOfBirthStr = formData.get("dateOfBirth");
         if (dateOfBirthStr != null && !dateOfBirthStr.isEmpty()) {
             LocalDate dateOfBirth = LocalDate.parse(dateOfBirthStr, DateTimeFormatter.ISO_DATE);
             bill.setDateOfBirth(dateOfBirth);
         }
 
-        // Update gender if provided
+        // Cập nhật giới tính nếu có
         String gender = formData.get("gender");
         if (gender != null && !gender.isEmpty()) {
             bill.setGender(gender);
         }
 
-        // Update traveler information
-        Traveler traveler = bill.getTraveler();
-        if (traveler == null) {
-            traveler = new Traveler();
-            bill.setTraveler(traveler);
-        }
-        traveler.setName(bill.getFullName());
-        traveler.setEmail(bill.getEmail());
-        traveler.setPhoneNumber(bill.getPhone());
-        traveler.setDateOfBirth(bill.getDateOfBirth());
-        traveler.setGender(bill.getGender());
-
-        // Update bill status
+        // Cập nhật trạng thái Bill
         bill.setStatus(Bill.BillStatus.DRAFT);
 
-        // Save the updated bill
+        // Cập nhật thông tin Traveler (người lớn và trẻ em)
+        List<Traveler> travelers = bill.getTravelers();
+        if (travelers == null) {
+            travelers = new ArrayList<>();
+            bill.setTravelers(travelers);
+        }
+
+        // Xử lý người lớn
+        String adultName = formData.get("adultName");
+        if (adultName != null && !adultName.isEmpty()) {
+            Traveler adult = new Traveler();
+            adult.setName(adultName);
+            adult.setEmail(formData.get("adultEmail"));
+            adult.setPhoneNumber(formData.get("adultPhone"));
+            adult.setDateOfBirth(LocalDate.parse(formData.get("adultDateOfBirth"), DateTimeFormatter.ISO_DATE));
+            adult.setGender(formData.get("adultGender"));
+            adult.setType(1); // Người lớn
+            adult.setBill(bill);
+            travelers.add(adult);
+        }
+
+        // Xử lý trẻ em
+        String childrenNames = formData.get("childrenNames"); // Dữ liệu có thể là danh sách tên trẻ em
+        if (childrenNames != null && !childrenNames.isEmpty()) {
+            String[] childrenNameArray = childrenNames.split(","); // Giả sử tên trẻ em được phân tách bởi dấu phẩy
+            for (String childName : childrenNameArray) {
+                Traveler child = new Traveler();
+                child.setName(childName.trim());
+                child.setDateOfBirth(LocalDate.parse(formData.get("childDateOfBirth"), DateTimeFormatter.ISO_DATE));
+                child.setGender(formData.get("childGender"));
+                child.setType(2); // Trẻ em
+                child.setBill(bill);
+                travelers.add(child);
+            }
+        }
+
+        // Lưu Bill với các thông tin đã cập nhật
         return billRepository.save(bill);
     }
 
@@ -144,7 +192,6 @@ public class BillService {
         bill.setStartDate(new Date(payment.getStartDate().toEpochDay()));
         bill.setEndDate(new Date(payment.getEndDate().toEpochDay()));
 
-
         bill.setTotalDiscount(payment.getTotalDiscount());
         bill.setTotalPrice(payment.getTotalPrice());
         bill.setTotalDiscountPercent(payment.getTotalDiscountPercent());
@@ -159,19 +206,34 @@ public class BillService {
         bill.setCreatedAt(LocalDateTime.now());
         bill.setUpdatedAt(LocalDateTime.now());
 
+        List<Traveler> travelers = new ArrayList<>();
+        bill.setTravelers(travelers);
 
-        if (payment.getPromotion() != null) {
-            bill.setPromotion(payment.getPromotion());
+        List<Promotion> promotions = new ArrayList<>();
+        bill.setPromotions(promotions);
+
+        if (payment.getAdults() != null && !payment.getAdults().isEmpty()) {
+            for (Traveler adultTraveler : payment.getAdults()) {
+                adultTraveler.setBill(bill);
+                travelers.add(adultTraveler);
+            }
         }
 
-        if (!payment.getTravelers().isEmpty()) {
-            Traveler mainTraveler = payment.getTravelers().get(0);
-            bill.setTraveler(mainTraveler);
-            bill.setDateOfBirth(mainTraveler.getDateOfBirth());
-            bill.setGender(mainTraveler.getGender());
+        if (payment.getChildren() != null && !payment.getChildren().isEmpty()) {
+            for (Traveler childTraveler : payment.getChildren()) {
+                childTraveler.setBill(bill);
+                travelers.add(childTraveler);
+            }
         }
 
+        bill.setTravelers(travelers);
 
+        if (payment.getPromotions() != null && !payment.getPromotions().isEmpty()) {
+            promotions.addAll(payment.getPromotions());
+            bill.setPromotions(promotions);
+        }
+
+        // Save and return the bill
         return billRepository.save(bill);
     }
 
@@ -180,7 +242,6 @@ public class BillService {
         return bill.orElse(null);
     }
 
-    @Transactional
     public Bill updateBill(String id, Bill updatedBill) {
         Optional<Bill> existingBill = billRepository.findById(id);
         if (existingBill.isPresent()) {
@@ -207,16 +268,25 @@ public class BillService {
             bill.setChildPrice(updatedBill.getChildPrice());
             bill.setUser(updatedBill.getUser());
             bill.setTour(updatedBill.getTour());
-            bill.setTraveler(updatedBill.getTraveler());
-            Set<Promotion> updatedPromotions = new HashSet<>(updatedBill.getPromotions());
-            bill.getPromotions().clear();
-            bill.getPromotions().addAll(updatedPromotions);
             bill.setStatus(updatedBill.getStatus());
             bill.setPaymentMethod(updatedBill.getPaymentMethod());
             bill.setCancelReason(updatedBill.getCancelReason());
 
+            // Cập nhật danh sách Traveler
+            // Xóa tất cả các traveler cũ và thêm những traveler mới từ updatedBill
+            Set<Traveler> updatedTravelers = new HashSet<>(updatedBill.getTravelers());
+            bill.getTravelers().clear();
+            bill.getTravelers().addAll(updatedTravelers);
+
+            // Cập nhật danh sách Promotion
+            Set<Promotion> updatedPromotions = new HashSet<>(updatedBill.getPromotions());
+            bill.getPromotions().clear();
+            bill.getPromotions().addAll(updatedPromotions);
+
+            // Lưu bill đã cập nhật
             return billRepository.save(bill);
         }
         return null;
     }
+
 }

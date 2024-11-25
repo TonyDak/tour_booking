@@ -45,6 +45,12 @@ public class BillController {
         return ResponseEntity.ok(updatedBill);
     }
 
+    @PostMapping("/{billId}/cancel")
+    public ResponseEntity<Bill> cancelBill(@PathVariable String billId, @RequestParam String cancelReason) {
+        Bill updatedBill = billService.updateBillStatus(billId, Bill.BillStatus.CANCELLED, cancelReason);
+        return ResponseEntity.ok(updatedBill);
+    }
+
     @GetMapping("/payment/information/{billId}")
     public ResponseEntity<Bill> getPaymentInformationPage(@PathVariable String billId) {
         Bill bill = billService.getBillById(billId);

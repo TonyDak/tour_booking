@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Null;
 import com.tourbooking.tour_booking.entity.Traveler;
 import com.tourbooking.tour_booking.entity.Promotion;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Payment {
@@ -17,7 +18,6 @@ public class Payment {
     private double totalDiscount;
     private double totalPrice;
     private int totalDiscountPercent;
-    private Promotion promotion;
     private String specialRequirement;
     private String others;
     private String location;
@@ -48,19 +48,59 @@ public class Payment {
     private int totalChildren = 0;
     private double adultTotalPrice = 0;
     private double childTotalPrice = 0;
-
+    private List<Promotion> promotions;
 
     public void calculateTotalPrice() {
+        totalAdults = 0;
+        totalChildren = 0;
+        adultTotalPrice = 0;
+        childTotalPrice = 0;
+
+        // Tính tổng số người lớn và trẻ em, đồng thời cộng dồn giá
         for (Traveler traveler : travelers) {
-            if (traveler.getType() == 1) {
+            if (traveler.getType() == 1) { // 1: Người lớn
                 totalAdults++;
                 adultTotalPrice += adultPrice;
-            } else if (traveler.getType() == 2) {
+            } else if (traveler.getType() == 2) { // 2: Trẻ em
                 totalChildren++;
                 childTotalPrice += childPrice;
             }
         }
-        totalPrice = adultTotalPrice + childTotalPrice - totalDiscount;
+
+        // Tổng giá trước chiết khấu
+        double totalBeforeDiscount = adultTotalPrice + childTotalPrice;
+
+        // Tính tổng chiết khấu từ tất cả các khuyến mãi
+        totalDiscount = 0;
+        for (Promotion promotion : promotions) {
+            totalDiscount += promotion.calculateDiscount(totalBeforeDiscount);
+        }
+
+        // Áp dụng chiết khấu cố định và phần trăm (nếu có)
+        double discountAmount = totalDiscount + (totalBeforeDiscount * totalDiscountPercent / 100);
+
+        // Đảm bảo tổng giá không âm
+        totalPrice = Math.max(0, totalBeforeDiscount - discountAmount);
+    }
+    public List<Traveler> getAdults() {
+        List<Traveler> adults = new ArrayList<>();
+        for (Traveler traveler : travelers) {
+            if (traveler.getType() == 1) { // 1: Người lớn
+                adults.add(traveler);
+            }
+        }
+        return adults;
+    }
+
+    // Phương thức để lấy danh sách trẻ em
+    public List<Traveler> getChildren() {
+        List<Traveler> children = new ArrayList<>();
+        for (Traveler traveler : travelers) {
+            if (traveler.getType() == 2) { // 2: Trẻ em
+                children.add(traveler);
+            }
+        }
+        return children;
     }
     public interface Adult { }
     public interface Child { }
@@ -129,12 +169,12 @@ public class Payment {
         this.totalDiscountPercent = totalDiscountPercent;
     }
 
-    public Promotion getPromotion() {
-        return promotion;
+    public List<Promotion> getPromotions() {
+        return promotions;
     }
 
-    public void setPromotion(Promotion promotion) {
-        this.promotion = promotion;
+    public void setPromotions(List<Promotion> promotions) {
+        this.promotions = promotions;
     }
 
     public String getSpecialRequirement() {

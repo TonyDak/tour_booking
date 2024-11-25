@@ -2,6 +2,7 @@ package com.tourbooking.tour_booking.service;
 
 import com.tourbooking.tour_booking.entity.Bill;
 import com.tourbooking.tour_booking.entity.NotificationTraveller;
+import com.tourbooking.tour_booking.entity.Traveler;
 import com.tourbooking.tour_booking.exception.ResourceNotFoundException;
 import com.tourbooking.tour_booking.repository.NotificationTravellerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +23,22 @@ public class NotificationTravellerService {
             throw new IllegalArgumentException("Bill cannot be null");
         }
 
+        List<Traveler> travelers = bill.getTravelers();
+        if (travelers == null || travelers.isEmpty()) {
+            throw new IllegalArgumentException("Traveler list is empty or null");
+        }
+
+        Traveler traveler = travelers.get(0);
 
         NotificationTraveller notification = new NotificationTraveller();
         notification.setMessage(message);
         notification.setBill(bill);
         notification.setIsRead(false);
+
+
         NotificationTraveller savedNotification = notificationTravellerRepository.save(notification);
 
-
-        String travelerId = bill.getTraveler().getId();
+        String travelerId = traveler.getId();
         sendNotificationToTraveler(travelerId, message);
 
         return savedNotification;

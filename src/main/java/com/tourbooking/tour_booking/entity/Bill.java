@@ -2,10 +2,7 @@ package com.tourbooking.tour_booking.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -95,9 +92,13 @@ public class Bill {
     @JoinColumn(name = "tour_id", referencedColumnName = "id", nullable = false)
     private Tour tour;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "traveler_id", referencedColumnName = "id", nullable = false)
-    private Traveler traveler;
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "bill_traveler",
+            joinColumns = @JoinColumn(name = "bill_id"),
+            inverseJoinColumns = @JoinColumn(name = "traveler_id")
+    )
+    private List<Traveler> travelers;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -105,7 +106,7 @@ public class Bill {
             joinColumns = @JoinColumn(name = "bill_id"),
             inverseJoinColumns = @JoinColumn(name = "promotion_id")
     )
-    private Set<Promotion> promotions = new HashSet<>();
+    private List<Promotion> promotions ;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

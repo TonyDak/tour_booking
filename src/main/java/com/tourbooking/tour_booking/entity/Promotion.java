@@ -37,6 +37,14 @@ public class Promotion {
     @ManyToMany(mappedBy = "promotions")
     private Set<Bill> bills = new HashSet<>();
 
-
+    public double calculateDiscount(double totalBeforeDiscount) {
+        if (this.type == 0) {
+            double percentageAmount = totalBeforeDiscount * (this.discount / 100.0);
+            return Math.min(percentageAmount, this.max_discount);
+        } else if (this.type == 1) {
+            return Math.min(this.discount, this.max_discount);
+        }
+        return 0;
+    }
 
 }

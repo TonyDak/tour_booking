@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -35,7 +36,6 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final BillRepository billRepository;
 
-
     public Payment saveInitialPayment(Payment payment) {
         return paymentRepository.save(payment);
     }
@@ -48,7 +48,7 @@ public class PaymentService {
     public Payment updatePayment(Payment payment) {
         return paymentRepository.save(payment);
     }
-    //create vnPay payment
+
     public VNPayResponse createVnPayPayment(HttpServletRequest request, String billId, String price) {
         long amount = Integer.parseInt(price) * 100L;
         String bankCode = request.getParameter("bankCode");
@@ -69,12 +69,11 @@ public class PaymentService {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String vnpCreateDate = formatter.format(calendar.getTime());
-        //lay create cua bill
         vnpParamsMap.put("vnp_CreateDate", vnpCreateDate);
         calendar.add(Calendar.MINUTE, 15);
         String vnp_ExpireDate = formatter.format(calendar.getTime());
         vnpParamsMap.put("vnp_ExpireDate", vnp_ExpireDate);
-        //build query url
+
         String queryUrl = getPaymentURL(vnpParamsMap, true);
         String hashData = getPaymentURL(vnpParamsMap, false);
         String vnpSecureHash = hmacSHA512(vnPayConfig.getSecretKey(), hashData);
@@ -86,7 +85,6 @@ public class PaymentService {
                 .message("success")
                 .paymentUrl(paymentUrl).build();
     }
-
 
     public static String hmacSHA512(final String key, final String data) {
         try {
@@ -104,106 +102,96 @@ public class PaymentService {
                 sb.append(String.format("%02x", b & 0xff));
             }
             return sb.toString();
-
         } catch (Exception ex) {
             return "";
         }
     }
 
+    @Transactional
+    public Bill preparePayment(String billId) {
+        Bill bill = billRepository.findById(billId)
+                .orElseThrow(() -> new RuntimeException("Bill not found with ID: " + billId));
+        bill.setStatus(Bill.BillStatus.IN_PROGRESS);
+        return billRepository.save(bill);
+    }
 
     public VNPayResponse verifyVNPayTransaction(HttpServletRequest request) throws UnsupportedEncodingException, MessagingException {
-        // So sánh mã hash vừa tạo với mã từ VNPay
         if (checkSum(request)) {
             boolean checkOrderId = true; // vnp_TxnRef exists in your database
             boolean checkAmount = true; // vnp_Amount is valid (Check vnp_Amount VNPAY returns compared to the
             boolean checkOrderStatus = true; // PaymnentStatus = 0 (pending)
-            if(checkOrderId)
-            {
-                if(checkAmount)
-                {
-                    if (checkOrderStatus)
-                    {
-                        if ("00".equals(request.getParameter("vnp_ResponseCode")))
-                        {
-                            // Here Code update PaymnentStatus = 1 into your Database bill
-
+            if(checkOrderId) {
+                if(checkAmount) {
+                    if (checkOrderStatus) {
+                        if ("00".equals(request.getParameter("vnp_ResponseCode"))) {
                             String billId = request.getParameter("vnp_TxnRef");
                             Bill bill = billRepository.findById(billId)
                                     .orElseThrow(() -> new RuntimeException("Bill not found with ID: " + billId));
 
-                            // Update bill status to SUCCESS
+                            // Update bill status to COMPLETED
                             bill.setStatus(Bill.BillStatus.COMPLETED);
                             billRepository.save(bill);
 
-                            sendEmailPaymentSucces("duckg2083999@gmail.com", "tourName", "billId", LocalDateTime.now(), "userName", "phone", "address", 1000000);
+                            sendEmailPaymentSucces("duckg2083999@gmail.com", "tourName", billId, LocalDateTime.now(), "userName", "phone", "address", 1000000);
 
                             String adminEmail = "admin@example.com";
                             String userName = request.getParameter("vnp_CustomerName");
 
-
-
-                            // Create notification and send email to admin
                             notificationAdminService.createNotificationToAdmin(
                                     "Có khách hàng thanh toán đặt tour",
                                     new Payment(),
                                     adminEmail,
                                     userName,
                                     billId
-
                             );
                             return VNPayResponse.builder()
                                     .code("00")
                                     .message("VNPay - Thanh toán thành công")
-                                    .paymentUrl("").build();
-                        }
-                        else
-                        {
-                            // Here Code update PaymnentStatus = 2 into your Database bill
+                                    .paymentUrl("https://tour.pwer-dev.id.vn/booking/bill-details/" + billId)
+                                    .build();
+                        } else {
                             String billId = request.getParameter("vnp_TxnRef");
                             Bill bill = billRepository.findById(billId)
                                     .orElseThrow(() -> new RuntimeException("Bill not found with ID: " + billId));
 
-                            // Update bill status to PAYMENT_FAILED
                             bill.setStatus(Bill.BillStatus.PAYMENT_FAILED);
                             billRepository.save(bill);
                             return VNPayResponse.builder()
                                     .code("01")
                                     .message("VNPay - Thanh toán thất bại")
-                                    .paymentUrl("").build();
+                                    .paymentUrl("https://tour.pwer-dev.id.vn/payment-failed?billId=" + billId)
+                                    .build();
                         }
-                    }
-                    else
-                    {
+                    } else {
                         return VNPayResponse.builder()
                                 .code("02")
                                 .message("VNPay - Đơn hàng đã được xử lý")
-                                .paymentUrl("").build();
+                                .paymentUrl("https://tour.pwer-dev.id.vn/payment-error")
+                                .build();
                     }
-                }
-                else
-                {
+                } else {
                     return VNPayResponse.builder()
                             .code("04")
                             .message("VNPay - Số tiền không hợp lệ")
-                            .paymentUrl("").build();
+                            .paymentUrl("https://tour.pwer-dev.id.vn/payment-error")
+                            .build();
                 }
-            }
-            else
-            {
+            } else {
                 return VNPayResponse.builder()
                         .code("05")
                         .message("VNPay - Mã đơn hàng không hợp lệ")
-                        .paymentUrl("").build();
+                        .paymentUrl("https://tour.pwer-dev.id.vn/payment-error")
+                        .build();
             }
         } else {
             return VNPayResponse.builder()
                     .code("99")
                     .message("VNPay - Mã xác thực không hợp lệ")
-                    .paymentUrl("").build();
+                    .paymentUrl("https://tour.pwer-dev.id.vn/payment-error")
+                    .build();
         }
     }
 
-    // Hàm xác thực `vnp_SecureHash`
     public boolean checkSum(HttpServletRequest request) throws UnsupportedEncodingException {
         Map<String, String> fields = new HashMap<>();
         for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements(); ) {
@@ -214,20 +202,17 @@ public class PaymentService {
                         URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
             }
         }
-        // Lấy và xóa vnp_SecureHash từ fields
         String vnp_SecureHash = request.getParameter("vnp_SecureHash");
         fields.remove("vnp_SecureHashType");
         fields.remove("vnp_SecureHash");
 
-        // Sắp xếp các trường theo thứ tự bảng chữ cái và tạo chuỗi dữ liệu
         StringBuilder data = new StringBuilder();
         fields.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .forEach(entry -> data.append(entry.getKey()).append("=").append(entry.getValue()).append("&"));
 
-        if (data.length() > 0) data.setLength(data.length() - 1); // Xóa ký tự `&` cuối cùng
+        if (data.length() > 0) data.setLength(data.length() - 1);
 
-        // Tính toán mã băm với secretKey
         String calculatedHash = hmacSHA512(vnPayConfig.getSecretKey(), data.toString());
         return calculatedHash.equals(vnp_SecureHash);
     }
@@ -254,6 +239,7 @@ public class PaymentService {
         }
         return sb.toString();
     }
+
     public static String getPaymentURL(Map<String, String> paramsMap, boolean encodeKey) {
         return paramsMap.entrySet().stream()
                 .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty())
@@ -268,7 +254,6 @@ public class PaymentService {
     }
 
     public void sendEmailPaymentSucces(String email, String tourName, String billId, LocalDateTime booked_at, String userName,String phone, String address, Integer price) throws MessagingException {
-        //send email payment success
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -280,12 +265,12 @@ public class PaymentService {
         String content = "<p>Kính gửi Quý khách hàng,</p>"
                 + "<p>Chúng tôi xin thông báo rằng khoản thanh toán của bạn cho đơn hàng đã được xử lý thành công. Thông tin chi tiết như sau:</p>"
                 + "<ul>"
-                    +"<ul><b>Thông tin khách hàng đặt tour</b>"
-                        + "<li><b>Tên khách hàng:</b> " + userName + "</li>"
-                        + "<li><b>Email:</b> " + email + "</li>"
-                        + "<li><b>Số điện thoại:</b> " + phone + "</li>"
-                        + "<li><b>Địa chỉ:</b> " + address + "</li>"
-                    +"</ul>"
+                +"<ul><b>Thông tin khách hàng đặt tour</b>"
+                + "<li><b>Tên khách hàng:</b> " + userName + "</li>"
+                + "<li><b>Email:</b> " + email + "</li>"
+                + "<li><b>Số điện thoại:</b> " + phone + "</li>"
+                + "<li><b>Địa chỉ:</b> " + address + "</li>"
+                +"</ul>"
                 + "<li><b>Tên tour thanh toán:</b> " + tourName + "</li>"
                 + "<li><b>Mã đơn hàng:</b> " + billId + "</li>"
                 + "<li><b>Ngày thanh toán:</b> " + booked_at + "</li>"
@@ -295,8 +280,7 @@ public class PaymentService {
                 + "<p>Trân trọng,</p>"
                 + "<p>Đội ngũ hỗ trợ</p>";
         helper.setText(content, true);
-        // Gửi email
         mailSender.send(message);
     }
-
 }
+

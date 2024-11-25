@@ -3,10 +3,12 @@ package com.tourbooking.tour_booking.service;
 import com.tourbooking.tour_booking.entity.Bill;
 import com.tourbooking.tour_booking.entity.Payment;
 import com.tourbooking.tour_booking.entity.Traveler;
+import com.tourbooking.tour_booking.entity.Promotion;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class PaymentToBillConverter {
@@ -14,6 +16,7 @@ public class PaymentToBillConverter {
     public Bill convertPaymentToBill(Payment payment) {
         Bill bill = new Bill();
 
+        // Thiết lập các thông tin khác của Bill từ Payment
         bill.setFullName(payment.getFullName());
         bill.setSpecialRequirement(payment.getSpecialRequirement());
         bill.setOthers(payment.getOthers());
@@ -36,16 +39,19 @@ public class PaymentToBillConverter {
         bill.setAdultPrice(payment.getAdultPrice());
         bill.setChildPrice(payment.getChildPrice());
 
-
-        if (!payment.getTravelers().isEmpty()) {
-            bill.setTraveler(payment.getTravelers().get(0));
+        List<Traveler> travelers = payment.getTravelers();
+        if (travelers != null && !travelers.isEmpty()) {
+            bill.setTravelers(travelers);
         }
 
         bill.setTour(payment.getTour());
-        bill.setPromotion(payment.getPromotion());
 
-
+        List<Promotion> promotions = payment.getPromotions();
+        if (promotions != null && !promotions.isEmpty()) {
+            bill.setPromotions(promotions);
+        }
 
         return bill;
     }
 }
+

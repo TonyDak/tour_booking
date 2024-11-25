@@ -49,7 +49,23 @@ public class PaymentController {
         return ResponseEntity.ok(payment);
     }
 
+    @PostMapping("/prepare")
+    public ResponseEntity<Bill> preparePayment(@RequestParam String billId) {
+        Bill updatedBill = billService.updateBillStatus(billId, Bill.BillStatus.IN_PROGRESS, null);
+        return ResponseEntity.ok(updatedBill);
+    }
 
+    @PostMapping("/confirm")
+    public ResponseEntity<Bill> confirmPayment(@RequestParam String billId) {
+        Bill updatedBill = billService.updateBillStatus(billId, Bill.BillStatus.WAIT, null);
+        return ResponseEntity.ok(updatedBill);
+    }
+
+    @PostMapping("/cancel")
+    public ResponseEntity<Bill> cancelPayment(@RequestParam String billId, @RequestParam String cancelReason) {
+        Bill updatedBill = billService.updateBillStatus(billId, Bill.BillStatus.CANCELLED, cancelReason);
+        return ResponseEntity.ok(updatedBill);
+    }
     @PostMapping("/payment")
     public String processPayment(@Valid @ModelAttribute("payment") Payment payment, BindingResult result) {
         if (result.hasErrors()) {
