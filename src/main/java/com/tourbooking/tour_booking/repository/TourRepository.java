@@ -1,5 +1,6 @@
 package com.tourbooking.tour_booking.repository;
 
+import com.tourbooking.tour_booking.entity.Location;
 import com.tourbooking.tour_booking.entity.Tour;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public interface TourRepository extends JpaRepository<Tour, String> {
 
     public List<Tour> findBySlugContainingIgnoreCase(String slug);
 
-    List<Tour> findAllByLocationName(String locationName);
+    List<Tour> findAllByLocation(Location location);
 
     boolean existsBySlug(String slug);
 
