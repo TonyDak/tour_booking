@@ -217,7 +217,12 @@ public class TourService {
         tourDetails.put("avt", tour.getAvt());
         tourDetails.put("highlight", tour.getHighlight());
         tourDetails.put("price", tour.getPrice());
-        tourDetails.put("location", tour.getLocation() != null ? tour.getLocation().getName() : null);
+        tourDetails.put("location", tour.getLocation() != null ? Map.of(
+                "id", tour.getLocation().getId(),
+                "name", tour.getLocation().getName(),
+                "latitude", tour.getLocation().getLatitude(),
+                "longitude", tour.getLocation().getLongitude()
+        ) : null);
         tourDetails.put("total_days", tour.getTotal_days());
         tourDetails.put("start_days", tour.getStart_days());
         tourDetails.put("end_days", tour.getEnd_days());
@@ -274,21 +279,38 @@ public class TourService {
         return tourDetails;
     }
 
-    public List<Map<String, Object>> getToursByLocationName(String locationId) {
-        List<Tour> tours = tourRepository.findAllByLocationName(locationId);
-        return tours.stream()
+    public Map<String, Object> getToursByLocationName(String locationName) {
+
+        Location location = locationRepository.findByName(locationName)
+                .orElseThrow(() -> new RuntimeException("Location not found with name: " + locationName));
+
+        List<Map<String, Object>> tours = location.getTours().stream()
                 .map(tour -> {
-                    Map<String, Object> tourSummary = new LinkedHashMap<>();
-                    tourSummary.put("id", tour.getId());
-                    tourSummary.put("title", tour.getTitle());
-                    tourSummary.put("slug", tour.getSlug());
-                    tourSummary.put("avt", tour.getAvt());
-                    tourSummary.put("price", tour.getPrice());
-                    tourSummary.put("locationName", tour.getLocation().getName());
-                    return tourSummary;
+                    Map<String, Object> tourMap = new LinkedHashMap<>();
+                    tourMap.put("id", tour.getId());
+                    tourMap.put("title", tour.getTitle());
+                    tourMap.put("slug", tour.getSlug());
+                    tourMap.put("avt", tour.getAvt());
+                    tourMap.put("price", tour.getPrice());
+                    return tourMap;
                 })
                 .collect(Collectors.toList());
+
+        Map<String, Object> locationWithTours = new LinkedHashMap<>();
+        locationWithTours.put("id", location.getId());
+        locationWithTours.put("name", location.getName());
+        locationWithTours.put("latitude", location.getLatitude());
+        locationWithTours.put("longitude", location.getLongitude());
+        locationWithTours.put("avt", location.getAvt());
+        locationWithTours.put("description", location.getDescription());
+        locationWithTours.put("total_tour", location.getTotal_tour());
+        locationWithTours.put("tours", tours);
+
+        return locationWithTours;
     }
+
+
+
 
     public List<Map<String, Object>> searchTours(String locationOrSlug, Long minPrice, Long maxPrice) {
 
@@ -390,7 +412,12 @@ public class TourService {
         tourDetails.put("avt", tour.getAvt());
         tourDetails.put("highlight", tour.getHighlight());
         tourDetails.put("price", tour.getPrice());
-        tourDetails.put("location", tour.getLocation() != null ? tour.getLocation().getName() : null);
+        tourDetails.put("location", tour.getLocation() != null ? Map.of(
+                "id", tour.getLocation().getId(),
+                "name", tour.getLocation().getName(),
+                "latitude", tour.getLocation().getLatitude(),
+                "longitude", tour.getLocation().getLongitude()
+        ) : null);
         tourDetails.put("total_days", tour.getTotal_days());
         tourDetails.put("start_days", tour.getStart_days());
         tourDetails.put("end_days", tour.getEnd_days());
