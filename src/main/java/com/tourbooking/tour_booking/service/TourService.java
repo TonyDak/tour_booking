@@ -217,7 +217,12 @@ public class TourService {
         tourDetails.put("avt", tour.getAvt());
         tourDetails.put("highlight", tour.getHighlight());
         tourDetails.put("price", tour.getPrice());
-        tourDetails.put("location", tour.getLocation() != null ? tour.getLocation().getName() : null);
+        tourDetails.put("location", tour.getLocation() != null ? Map.of(
+                "id", tour.getLocation().getId(),
+                "name", tour.getLocation().getName(),
+                "latitude", tour.getLocation().getLatitude(),
+                "longitude", tour.getLocation().getLongitude()
+        ) : null);
         tourDetails.put("total_days", tour.getTotal_days());
         tourDetails.put("start_days", tour.getStart_days());
         tourDetails.put("end_days", tour.getEnd_days());
@@ -390,7 +395,12 @@ public class TourService {
         tourDetails.put("avt", tour.getAvt());
         tourDetails.put("highlight", tour.getHighlight());
         tourDetails.put("price", tour.getPrice());
-        tourDetails.put("location", tour.getLocation() != null ? tour.getLocation().getName() : null);
+        tourDetails.put("location", tour.getLocation() != null ? Map.of(
+                "id", tour.getLocation().getId(),
+                "name", tour.getLocation().getName(),
+                "latitude", tour.getLocation().getLatitude(),
+                "longitude", tour.getLocation().getLongitude()
+        ) : null);
         tourDetails.put("total_days", tour.getTotal_days());
         tourDetails.put("start_days", tour.getStart_days());
         tourDetails.put("end_days", tour.getEnd_days());
