@@ -9,16 +9,24 @@ import com.tourbooking.tour_booking.dto.auth.*;
 import com.tourbooking.tour_booking.dto.auth.RegisterRequest;
 import com.tourbooking.tour_booking.entity.InvalidatedToken;
 import com.tourbooking.tour_booking.entity.User;
+import com.tourbooking.tour_booking.entity.UserProvider;
 import com.tourbooking.tour_booking.mapper.UserMapper;
 import com.tourbooking.tour_booking.repository.InvalidatedTokenRepository;
 import com.tourbooking.tour_booking.repository.RoleRepository;
+import com.tourbooking.tour_booking.repository.UserProviderRepository;
 import com.tourbooking.tour_booking.repository.UserRepository;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
@@ -35,6 +43,8 @@ public class AuthenticationService {
     private final InvalidatedTokenRepository invalidatedTokenRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
+    private final UserProviderRepository userProviderRepository;
+    private final JavaMailSender mailSender;
 
     @Value("${jwt.secret}")
     private String SECRET_KEY;
@@ -64,7 +74,66 @@ public class AuthenticationService {
         user.setRoles(new HashSet<>(roles));
         user.setStatus(1);
         userRepository.save(user);
+        //provider
+        UserProvider userProvider = UserProvider.builder()
+                .user(user)
+                .provider(UserProvider.Provider.LOCAL)
+                .providerId(user.getEmail())
+                .build();
+        userProviderRepository.save(userProvider);
+
         return registerRequest;
+    }
+    private void sendEmail(String email, String password) throws MessagingException {
+        var message = mailSender.createMimeMessage();
+        var helper = new MimeMessageHelper(message, true);
+        helper.setTo(email);
+        helper.setSubject("Welcome to Tour Booking");
+        helper.setText("Your password is: " + password);
+        mailSender.send(message);
+    }
+    @Transactional
+    public AuthenticationResponse handleGoogleLogin(OAuth2AuthenticationToken authentication) throws MessagingException {
+        OAuth2User oAuth2User = authentication.getPrincipal();
+        String email = oAuth2User.getAttribute("email");
+        String username = oAuth2User.getAttribute("name");
+
+        //random password chuỗi 8 ký tự
+        var password = UUID.randomUUID().toString().substring(0, 8);
+
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            User newUser = User.builder()
+                    .email(email)
+                    .user_name(username)
+                    .password(new BCryptPasswordEncoder(10).encode(password))
+                    .status(1)
+                    .roles(new HashSet<>(roleRepository.findAllById(Set.of("USER"))))
+                    .build();
+            userRepository.save(newUser);
+            //send email
+            try {
+                sendEmail(email, password);
+            } catch (MessagingException e) {
+                throw new RuntimeException(e);
+            }
+            return newUser;
+        });
+
+        UserProvider userProvider = userProviderRepository.findByUserAndProvider(user, UserProvider.Provider.GOOGLE)
+                .orElseGet(() -> {
+                    UserProvider newUserProvider = UserProvider.builder()
+                            .user(user)
+                            .provider(UserProvider.Provider.GOOGLE)
+                            .providerId(email)
+                            .build();
+                    userProviderRepository.save(newUserProvider);
+                    return newUserProvider;
+                });
+        List<String> bookmarked = user.getBookMarks().stream()
+                .map(bookmark -> bookmark.getTour().getId())
+                .collect(Collectors.toList());
+
+        return AuthenticationResponse.builder().authenticated(true).token(generateToken(user)).bookmarked(bookmarked).build();
     }
     public AuthenticationResponse isAuthenticated(AuthenticatonRequest authenticatonRequest) {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);

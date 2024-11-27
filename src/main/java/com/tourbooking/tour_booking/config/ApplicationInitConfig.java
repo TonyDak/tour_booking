@@ -1,12 +1,10 @@
 package com.tourbooking.tour_booking.config;
 
-import com.tourbooking.tour_booking.entity.Permission;
 import com.tourbooking.tour_booking.entity.Role;
 import com.tourbooking.tour_booking.entity.User;
 import com.tourbooking.tour_booking.repository.RoleRepository;
 import com.tourbooking.tour_booking.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
@@ -29,13 +27,13 @@ public class ApplicationInitConfig {
                 roleRepository.save(Role.builder()
                         .name("USER")
                         .description("User role")
-                        .permissions(new HashSet<>(Set.of(Permission.READ, Permission.CREATE, Permission.UPDATE)))
+                        .permissions(new HashSet<>(Set.of(Role.Permission.READ, Role.Permission.CREATE, Role.Permission.UPDATE)))
                         .build());
 
                 Role roleAdmin = roleRepository.save(Role.builder()
                         .name("ADMIN")
                         .description("Admin role")
-                        .permissions(new HashSet<>(Set.of(Permission.CREATE, Permission.READ, Permission.UPDATE, Permission.DELETE)))
+                        .permissions(new HashSet<>(Set.of(Role.Permission.CREATE, Role.Permission.READ, Role.Permission.UPDATE, Role.Permission.DELETE)))
                         .build());
 
                 User user = User.builder()

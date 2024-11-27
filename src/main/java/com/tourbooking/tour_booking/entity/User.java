@@ -27,16 +27,19 @@ public class User {
     @ManyToMany
     private Set<Role> roles;
 
-    @ElementCollection(targetClass = Permission.class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = Role.Permission.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "user_permissions", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "permission")
-    private Set<Permission> permissions;
+    private Set<Role.Permission> permissions;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private List<Bill> bills;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private List<BookMark> bookMarks;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<UserProvider> userProviders;
 
 }

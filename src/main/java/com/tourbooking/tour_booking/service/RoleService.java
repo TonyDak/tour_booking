@@ -2,13 +2,11 @@ package com.tourbooking.tour_booking.service;
 
 import com.tourbooking.tour_booking.dto.user.RoleRequest;
 import com.tourbooking.tour_booking.dto.user.RoleResponse;
-import com.tourbooking.tour_booking.entity.Permission;
 import com.tourbooking.tour_booking.mapper.RoleMapper;
 import com.tourbooking.tour_booking.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 

@@ -2,10 +2,7 @@ package com.tourbooking.tour_booking.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Null;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Set;
 
@@ -24,4 +21,16 @@ public class Role {
     @Enumerated(EnumType.STRING)
     @Column(name = "permission")
     private Set<Permission> permissions;
+
+    @RequiredArgsConstructor
+    public enum Permission {
+        CREATE,
+        READ,
+        UPDATE,
+        DELETE;
+
+        public String getName() {
+            return this.name();
+        }
+    }
 }

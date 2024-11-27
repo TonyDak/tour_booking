@@ -1,6 +1,6 @@
 package com.tourbooking.tour_booking.dto.user;
 
-import com.tourbooking.tour_booking.entity.Permission;
+import com.tourbooking.tour_booking.entity.Role;
 import lombok.Value;
 
 import java.io.Serializable;
@@ -13,5 +13,5 @@ import java.util.Set;
 public class RoleResponse implements Serializable {
     String name;
     String description;
-    Set<Permission> permissions;
+    Set<Role.Permission> permissions;
 }

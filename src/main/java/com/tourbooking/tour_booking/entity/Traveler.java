@@ -16,11 +16,19 @@ public class Traveler {
     private String phone_number;
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    private TravelerType type;
+
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(
-        name = "bill_id",
-        referencedColumnName = "id",
-        nullable = false
+            name = "bill_id",
+            referencedColumnName = "id",
+            nullable = false
     )
     private Bill bill;
+
+    public enum TravelerType {
+        ADULT,
+        CHILD,
+    }
 }
