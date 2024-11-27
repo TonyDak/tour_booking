@@ -8,9 +8,9 @@ spring:
     profiles:
         active: dev
     datasource:
-        url: jdbc:mysql://103.173.227.90:3306/tour-booking
-        username: tour-booking
-        password: n0XKVVma)hmE
+        url: ${DB_URL}
+        username: ${DB_USERNAME}
+        password: ${DB_PASSWORD}
         driver-class-name: com.mysql.cj.jdbc.Driver
     jpa:
         hibernate:
@@ -36,6 +36,22 @@ spring:
             hashSecret: ${VNPAY_KEY}
             returnUrl: ${VNPAY_RETURN_URL}
             ipnUrl: ${VNPAY_URL}
+    security:
+        oauth2:
+            client:
+                registration:
+                    google:
+                        client-id: ${GOOGLE_CLIENT_ID}
+                        client-secret: ${GOOGLE_CLIENT_SECRET}
+                        scope: openid, profile, email
+                        redirect-uri:  ${GG_REDIRECT_URI}
+                        authorization-grant-type: authorization_code
+                provider:
+                    google:
+                        authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+                        token-uri: https://oauth2.googleapis.com/token
+                        user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+                        jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
 
     servlet:
       multipart:
@@ -46,8 +62,8 @@ jwt:
 
 aws:
     s3:
-        bucket-name: ${BUCKET_NAME}
-        endpoint: ${ENDPOINT}
-        access-key-id: ${ACCESS_KEY}
-        secret-access-key: ${SECRET_KEY_AWS}
-        region: ${REGION}
+        bucket-name: ${AWS_BUCKET_NAME}
+        endpoint: ${AWS_ENDPOINT_URL}
+        access-key-id: ${AWS_ACCESS_KEY}
+        secret-access-key: ${AWS_SECRET_KEY}
+        region: ${AWS_REGION}
