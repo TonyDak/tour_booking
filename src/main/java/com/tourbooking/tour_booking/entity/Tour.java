@@ -32,8 +32,8 @@ public class Tour {
     private String policy;
     private Integer min_booking_traveller;
 
-    @OneToOne(mappedBy = "tour", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, optional = false)
-    private Bill bill;
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    private List<Bill> bill;
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Schedule> schedules;

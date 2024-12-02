@@ -8,8 +8,10 @@ import com.tourbooking.tour_booking.entity.*;
 import com.tourbooking.tour_booking.mapper.BillMapper;
 import com.tourbooking.tour_booking.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,23 +27,23 @@ public class BookingService {
     private final PromotionRepository promotionRepository;
     private final TravelerRepository travelerRepository;
 
+    @Transactional
     public BookingDraftRespone createBooking(BookingDraftRequest bookingDraftRequest) {
-        Tour tour = tourRepository.findById(bookingDraftRequest.getTour_id()).orElseThrow(
-                () -> new RuntimeException("Tour not found")
-        );
+        Tour tour = tourRepository.findByTourId(bookingDraftRequest.getTour_id()).orElseThrow(() -> new RuntimeException("Tour not found"));
         Bill bill = billMapper.toBill(bookingDraftRequest);
         //bill_id form SOCTRIP-random chuỗi 10 number
-        bill.setId("SOCTRIP-" + (int) (Math.random() * 1000000000));
+        bill.setId("SGUTOUR-" + (int) (Math.random() * 1000000000));
         bill.setBill_status(Bill.BillStatus.DRAFT);
         bill.setTour(tour);
         billRepository.save(bill);
-        return billMapper.toBookingDraftRespone(bill);
+        return new BookingDraftRespone(bill.getId(), tour.getId(),bookingDraftRequest.getStart_time());
+
     }
 
     public BookingRequest confirmBooking(BookingRequest bookingRequest) {
-        Bill bill = billRepository.findById(bookingRequest.getBill_id()).orElseThrow(() -> new RuntimeException("Bill not found"));
+        Bill bill = billRepository.findByBillId(bookingRequest.getBill_id()).orElseThrow(() -> new RuntimeException("Bill not found"));
         User user = userRepository.findByEmail(bookingRequest.getEmail()).orElseThrow(() -> new RuntimeException("User not found"));
-        Tour tour = tourRepository.findById(bookingRequest.getTour_id()).orElseThrow(() -> new RuntimeException("Tour not found"));
+        Tour tour = tourRepository.findByTourId(bookingRequest.getTour_id()).orElseThrow(() -> new RuntimeException("Tour not found"));
         Promotion promotion = promotionRepository.findByCode(bookingRequest.getPromotion_code()).orElse(null);
         //check promotion
         if (promotion != null) {
@@ -60,6 +62,7 @@ public class BookingService {
         }
         bill.setBill_status(Bill.BillStatus.PENDING);
         bill.setSpecial_requirement(bookingRequest.getSpecial_requirement());
+        bill.setOther_requirement(bookingRequest.getOther_requirement());
         bill.setUser(user);
         bill.setBooked_at(LocalDateTime.now());
         //check min_traveler
@@ -102,10 +105,36 @@ public class BookingService {
 
         // Set the bill_id for each traveler
         for (TravelerRequest traveler : bookingRequest.getTravelers()) {
-            Traveler travelerEntity = billMapper.toTraveler(traveler);
-            travelerEntity.setBill(bill);
-            travelerRepository.save(travelerEntity);
+            //check bill_id
+            if (travelerRepository.existsByBill_Id((bookingRequest.getBill_id()))) {
+                throw new RuntimeException("Bill_id is already exist");
+            }else {
+                Traveler travelerEntity = billMapper.toTraveler(traveler);
+                travelerEntity.setBill(bill);
+                travelerRepository.save(travelerEntity);
+            }
         }
         return bookingRequest;
     }
+
+    @Scheduled(fixedRate = 60000) // Run every minute
+    public void deleteOldDraftBills() {
+        LocalDateTime timeLimit = LocalDateTime.now().minusMinutes(15);
+        List<Bill> oldDraftBills = billRepository.findDraftBillsOlderThan(timeLimit);
+        billRepository.deleteAll(oldDraftBills);
+    }
+
+
+    @Scheduled(fixedRate = 60000) // Run every minute
+    public void deleteOldPendingBills() {
+        LocalDateTime timeLimit = LocalDateTime.now().minusMinutes(15);
+        List<Bill> oldPendingBills = billRepository.findPendingBillsOlderThan(timeLimit);
+        //set status to failed
+        for (Bill bill : oldPendingBills) {
+            bill.setBill_status(Bill.BillStatus.FAILED);
+            billRepository.save(bill);
+        }
+    }
+
+
 }

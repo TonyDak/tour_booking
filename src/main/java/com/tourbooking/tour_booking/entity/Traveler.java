@@ -30,5 +30,6 @@ public class Traveler {
     public enum TravelerType {
         ADULT,
         CHILD,
+        INFANT
     }
 }

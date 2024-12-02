@@ -1,7 +1,11 @@
 package com.tourbooking.tour_booking.service;
 
 import com.tourbooking.tour_booking.config.VNPayConfig;
+import com.tourbooking.tour_booking.dto.payment.VNPayRequest;
 import com.tourbooking.tour_booking.dto.payment.VNPayResponse;
+import com.tourbooking.tour_booking.entity.Bill;
+import com.tourbooking.tour_booking.entity.Tour;
+import com.tourbooking.tour_booking.repository.BillRepository;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
@@ -17,6 +21,8 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -27,16 +33,18 @@ import java.util.stream.Collectors;
 public class PaymentService {
     private final VNPayConfig vnPayConfig;
     private final JavaMailSender mailSender;
+    private final BillRepository billRepository;
 
 
     //create vnPay payment
-    public VNPayResponse createVnPayPayment(HttpServletRequest request, String billId, String price) {
-        long amount = Integer.parseInt(price) * 100L;
+    public VNPayResponse createVnPayPayment(HttpServletRequest request, VNPayRequest vnPayRequest) throws ParseException {
+        Bill bill = billRepository.findById(vnPayRequest.getBill_id()).orElseThrow(() -> new RuntimeException("Bill not found"));
+        long amount = bill.getTotal_price() * 100L;
         String bankCode = request.getParameter("bankCode");
         Map<String, String> vnpParamsMap = vnPayConfig.getVNPayConfig();
         vnpParamsMap.put("vnp_Command", "pay");
-        vnpParamsMap.put("vnp_TxnRef", billId);
-        vnpParamsMap.put("vnp_OrderInfo", "Thanh toan don hang dat tour:" +  billId);
+        vnpParamsMap.put("vnp_TxnRef", bill.getId());
+        vnpParamsMap.put("vnp_OrderInfo", "Thanh toan don hang dat tour:" +  bill.getId());
         vnpParamsMap.put("vnp_Amount", String.valueOf(amount));
         if (bankCode != null && !bankCode.isEmpty()) {
             vnpParamsMap.put("vnp_BankCode", bankCode);
@@ -49,9 +57,11 @@ public class PaymentService {
 
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        String vnpCreateDate = formatter.format(calendar.getTime());
+        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        Date date = inputFormat.parse(bill.getBooked_at().toString());
+        String booked_at = formatter.format(date);
         //lay create cua bill
-        vnpParamsMap.put("vnp_CreateDate", vnpCreateDate);
+        vnpParamsMap.put("vnp_CreateDate", booked_at);
         calendar.add(Calendar.MINUTE, 15);
         String vnp_ExpireDate = formatter.format(calendar.getTime());
         vnpParamsMap.put("vnp_ExpireDate", vnp_ExpireDate);
@@ -92,8 +102,9 @@ public class PaymentService {
     }
 
 
-    public VNPayResponse verifyVNPayTransaction(HttpServletRequest request) throws UnsupportedEncodingException, MessagingException {
+    public VNPayResponse verifyVNPayTransaction(HttpServletRequest request, String billId) throws UnsupportedEncodingException, MessagingException {
         // So sánh mã hash vừa tạo với mã từ VNPay
+        Bill bill = billRepository.findById(billId).orElseThrow(() -> new RuntimeException("Bill not found"));
         if (checkSum(request)) {
             boolean checkOrderId = true; // vnp_TxnRef exists in your database
             boolean checkAmount = true; // vnp_Amount is valid (Check vnp_Amount VNPAY returns compared to the
@@ -107,8 +118,9 @@ public class PaymentService {
                         if ("00".equals(request.getParameter("vnp_ResponseCode")))
                         {
                             // Here Code update PaymnentStatus = 1 into your Database bill
-
-                            sendEmailPaymentSucces("duckg2083999@gmail.com", "tourName", "billId", LocalDateTime.now(), "userName", "phone", "address", 1000000);
+                            bill.setBill_status(Bill.BillStatus.PAID);
+                            billRepository.save(bill);
+                            sendEmailPaymentSucces(bill.getUser().getEmail(), bill.getTour().getTitle(), bill.getId(), bill.getBooked_at(), bill.getTotal_price());
                             return VNPayResponse.builder()
                                     .code("00")
                                     .message("VNPay - Thanh toán thành công")
@@ -117,7 +129,8 @@ public class PaymentService {
                         else
                         {
                             // Here Code update PaymnentStatus = 2 into your Database bill
-
+                            bill.setBill_status(Bill.BillStatus.FAILED);
+                            billRepository.save(bill);
                             return VNPayResponse.builder()
                                     .code("01")
                                     .message("VNPay - Thanh toán thất bại")
@@ -219,33 +232,57 @@ public class PaymentService {
                 .collect(Collectors.joining("&"));
     }
 
-    public void sendEmailPaymentSucces(String email, String tourName, String billId, LocalDateTime booked_at, String userName,String phone, String address, Integer price) throws MessagingException {
+    public void sendEmailPaymentSucces(String email, String tourName, String billId, LocalDateTime booked_at, Integer price) throws MessagingException {
         //send email payment success
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        // Inside your method
+        NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        String formattedPrice = currencyFormatter.format(price);
 
         helper.setTo(email);
         message.setRecipients(
                 Message.RecipientType.TO, InternetAddress.parse(email));
-        message.setSubject("Xác nhận thanh toán thành công đặt tour #" + billId);
+        message.setSubject("Xác nhận thanh toán thành công đặt tour " + tourName + " tại Tour Booking");
 
-        String content = "<p>Kính gửi Quý khách hàng,</p>"
-                + "<p>Chúng tôi xin thông báo rằng khoản thanh toán của bạn cho đơn hàng đã được xử lý thành công. Thông tin chi tiết như sau:</p>"
-                + "<ul>"
-                    +"<ul><b>Thông tin khách hàng đặt tour</b>"
-                        + "<li><b>Tên khách hàng:</b> " + userName + "</li>"
-                        + "<li><b>Email:</b> " + email + "</li>"
-                        + "<li><b>Số điện thoại:</b> " + phone + "</li>"
-                        + "<li><b>Địa chỉ:</b> " + address + "</li>"
-                    +"</ul>"
-                + "<li><b>Tên tour thanh toán:</b> " + tourName + "</li>"
-                + "<li><b>Mã đơn hàng:</b> " + billId + "</li>"
-                + "<li><b>Ngày thanh toán:</b> " + booked_at + "</li>"
-                + "<li><b>Số tiền thanh toán:</b> " + String.format("%,d VND", price) + "</li>"
-                + "</ul>"
-                + "<p>Xin cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của chúng tôi.</p>"
-                + "<p>Trân trọng,</p>"
-                + "<p>Đội ngũ hỗ trợ</p>";
+        String content = "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"max-width: 600px; margin: 20px auto; background-color: #ffffff;\">\n" +
+                "        <tr>\n" +
+                "            <td style=\"padding: 40px 30px; background-color: #4CAF50; text-align: center;\">\n" +
+                "                <h1 style=\"color: #ffffff; margin: 0;\">Payment Successful</h1>\n" +
+                "            </td>\n" +
+                "        </tr>\n" +
+                "        <tr>\n" +
+                "            <td style=\"padding: 40px 30px;\">\n" +
+                "                <p style=\"font-size: 16px; line-height: 24px; margin: 0 0 20px;\">Dear Customer,</p>\n" +
+                "                <p style=\"font-size: 16px; line-height: 24px; margin: 0 0 20px;\">Thank you for your payment. Your transaction has been successfully processed.</p>\n" +
+                "                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"margin-bottom: 20px;\">\n" +
+                "                    <tr>\n" +
+                "                        <td style=\"padding: 10px; border-bottom: 1px solid #eeeeee; font-weight: bold;\">Payment Details:</td>\n" +
+                "                        <td style=\"padding: 10px; border-bottom: 1px solid #eeeeee;\"></td>\n" +
+                "                    </tr>\n" +
+                "                    <tr>\n" +
+                "                        <td style=\"padding: 10px; border-bottom: 1px solid #eeeeee;\">Amount Paid:</td>\n" +
+                "                        <td style=\"padding: 10px; border-bottom: 1px solid #eeeeee;\">"+formattedPrice+"</td>\n" +
+                "                    </tr>\n" +
+                "                    <tr>\n" +
+                "                        <td style=\"padding: 10px; border-bottom: 1px solid #eeeeee;\">Bill ID:</td>\n" +
+                "                        <td style=\"padding: 10px; border-bottom: 1px solid #eeeeee;\">"+billId+"</td>\n" +
+                "                    </tr>\n" +
+                "                    <tr>\n" +
+                "                        <td style=\"padding: 10px; border-bottom: 1px solid #eeeeee;\">Date:</td>\n" +
+                "                        <td style=\"padding: 10px; border-bottom: 1px solid #eeeeee;\">"+booked_at+"</td>\n" +
+                "                    </tr>\n" +
+                "                </table>\n" +
+                "                <p style=\"font-size: 16px; line-height: 24px; margin: 0 0 20px;\">If you have any questions or concerns regarding this transaction, please don't hesitate to contact our customer support team.</p>\n" +
+                "                <p style=\"font-size: 16px; line-height: 24px; margin: 0;\">Thank you for your business!</p>\n" +
+                "            </td>\n" +
+                "        </tr>\n" +
+                "        <tr>\n" +
+                "            <td style=\"padding: 20px 30px; background-color: #f8f8f8; text-align: center; font-size: 14px; color: #888888;\">\n" +
+                "                <p style=\"margin: 0;\">This is an automated email. Please do not reply.</p>\n" +
+                "            </td>\n" +
+                "        </tr>\n" +
+                "    </table>";
         helper.setText(content, true);
         // Gửi email
         mailSender.send(message);

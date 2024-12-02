@@ -21,7 +21,7 @@ public class UserController {
     //hiển thị đầy đủ thông tin user trừ password cho admin
     @GetMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Page<AdminUserInfoRequest>> getUsers(@RequestParam(defaultValue = "1") int page,
+    public ApiResponse<Page<AdminUserInfoRequest>> getUsers(@RequestParam(defaultValue = "0") int page,
                                                             @RequestParam(defaultValue = "10") int size){
         ApiResponse<Page<AdminUserInfoRequest>> response = new ApiResponse<>();
         response.setMessage("Users");
@@ -32,7 +32,7 @@ public class UserController {
     @GetMapping("/admin/search-name")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Page<AdminUserInfoRequest>> getUsersByName(@RequestParam String name,
-                                                                 @RequestParam(defaultValue = "1") int page,
+                                                                 @RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "10") int size){
         ApiResponse<Page<AdminUserInfoRequest>> response = new ApiResponse<>();
         response.setMessage("Users");
@@ -44,7 +44,7 @@ public class UserController {
     @GetMapping("/admin/search-email")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Page<AdminUserInfoRequest>> getUsersByEmail(@RequestParam String email,
-                                                                 @RequestParam(defaultValue = "1") int page,
+                                                                 @RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "10") int size){
         ApiResponse<Page<AdminUserInfoRequest>> response = new ApiResponse<>();
         response.setMessage("Users");
@@ -55,7 +55,7 @@ public class UserController {
     @GetMapping("/admin/search-phone")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Page<AdminUserInfoRequest>> getUsersByPhone(@RequestParam String phone,
-                                                                 @RequestParam(defaultValue = "1") int page,
+                                                                 @RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "10") int size){
         ApiResponse<Page<AdminUserInfoRequest>> response = new ApiResponse<>();
         response.setMessage("Users");
@@ -132,4 +132,25 @@ public class UserController {
     }
 
     //transaction history
+    @GetMapping("/my-booking")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<Page<TransactionRespone>> getTransactionHistory(@RequestParam String status,
+                                                                        @RequestParam(defaultValue = "0") int page,
+                                                                        @RequestParam(defaultValue = "10") int size){
+        ApiResponse<Page<TransactionRespone>> response = new ApiResponse<>();
+        response.setMessage("Transaction history");
+        response.setResult(userService.getAllTransactionHistory(status, page, size));
+        return response;
+    }
+
+    //transactiondetail history
+    @GetMapping("/my-booking/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<TransactionDetailRespone> getTransactionDetail(@PathVariable String id){
+        ApiResponse<TransactionDetailRespone> response = new ApiResponse<>();
+        response.setMessage("Transaction detail");
+        response.setResult(userService.getTransactionDetail(id));
+        return response;
+    }
+
 }

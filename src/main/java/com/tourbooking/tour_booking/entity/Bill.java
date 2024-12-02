@@ -17,8 +17,10 @@ public class Bill {
     private LocalDateTime booked_at = LocalDateTime.now();
     private String cancellation_reason;
     private String special_requirement;
+    private String other_requirement;
     private LocalDate start_time = LocalDate.now();
     private Integer total_price;
+
     //status: draft, pending, paid, canceled
     @Enumerated(EnumType.STRING)
     private BillStatus bill_status;
@@ -31,7 +33,7 @@ public class Bill {
     )
     private User user;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "tour_id",
             referencedColumnName = "id",
@@ -62,5 +64,6 @@ public class Bill {
             return this.name();
         }
     }
+
 }
 

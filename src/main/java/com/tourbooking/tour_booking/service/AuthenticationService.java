@@ -129,7 +129,10 @@ public class AuthenticationService {
                     userProviderRepository.save(newUserProvider);
                     return newUserProvider;
                 });
-        List<String> bookmarked = user.getBookMarks().stream()
+        //check get bookmarked is null then next
+        List<String> bookmarked = Optional.ofNullable(user.getBookMarks())
+                .orElse(Collections.emptyList())
+                .stream()
                 .map(bookmark -> bookmark.getTour().getId())
                 .collect(Collectors.toList());
 

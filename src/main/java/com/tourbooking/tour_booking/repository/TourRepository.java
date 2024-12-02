@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface TourRepository extends JpaRepository<Tour, String> {
 
@@ -22,8 +23,7 @@ public interface TourRepository extends JpaRepository<Tour, String> {
 
     List<Tour> findTop10ByOrderByIdAsc();
 
-
-
-
-
-}
+    //find by id by query
+    @Query("SELECT t FROM Tour t WHERE t.id = :id")
+    Optional<Tour> findByTourId(String id);
+    }

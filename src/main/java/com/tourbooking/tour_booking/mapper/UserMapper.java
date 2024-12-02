@@ -21,4 +21,7 @@ public interface UserMapper {
 
     void updateUserFromDto(UserUpdateRequest dto, @MappingTarget User entity);
     void AdminUpdateUserFromDto(AdminUserUpdateRequest dto, @MappingTarget User entity);
+
+
+
 }

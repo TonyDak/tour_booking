@@ -23,6 +23,7 @@ public class BookingRequest {
     String phone_number;
     List<TravelerRequest> travelers;
     String special_requirement;
+    String other_requirement;
     String promotion_code;
 
 }

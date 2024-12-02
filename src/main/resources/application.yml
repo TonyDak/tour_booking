@@ -19,6 +19,7 @@ spring:
         properties:
             hibernate:
                 dialect: org.hibernate.dialect.MySQL8Dialect
+
     mail:
         host: ${MAIL_HOST}
         port: ${MAIL_PORT}
@@ -41,10 +42,10 @@ spring:
             client:
                 registration:
                     google:
-                        client-id: ${GOOGLE_CLIENT_ID}
-                        client-secret: ${GOOGLE_CLIENT_SECRET}
+                        client-id: 935373546148-sltau2vhbigkq5tnpu1u1l5gn72qbmh0.apps.googleusercontent.com
+                        client-secret: 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
                         scope: openid, profile, email
-                        redirect-uri:  ${GG_REDIRECT_URI}
+                        redirect-uri: http://localhost:8080/api/login/oauth2/code/google
                         authorization-grant-type: authorization_code
                 provider:
                     google:

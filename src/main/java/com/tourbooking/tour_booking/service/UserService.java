@@ -3,7 +3,10 @@ package com.tourbooking.tour_booking.service;
 import java.util.UUID;
 
 import com.tourbooking.tour_booking.dto.user.*;
+import com.tourbooking.tour_booking.entity.Bill;
+import com.tourbooking.tour_booking.mapper.BillMapper;
 import com.tourbooking.tour_booking.mapper.UserMapper;
+import com.tourbooking.tour_booking.repository.BillRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,8 @@ public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JavaMailSender mailSender;
+    private final BillRepository billRepository;
+    private final BillMapper billMapper;
 
 
     public Page<AdminUserInfoRequest> getUsers(int page, int size) {
@@ -135,5 +140,27 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(resetPasswordRequest.getNewPassword()));
         user.setToken(null);
         userRepository.save(user);
+    }
+
+    public Page<TransactionRespone> getAllTransactionHistory(String status,int page, int size) {
+        var context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new RuntimeException("User not found")
+        );
+        //xem lịch sử giao dịch
+        //lấy ra tất cả bill của user
+        //check nếu request
+        if (status.equals("all")) {
+            return billRepository.findByUser(user, PageRequest.of(page, size)).map(TransactionRespone::new);
+        }else {
+            Bill.BillStatus billStatus = Bill.BillStatus.valueOf(status.toUpperCase());
+            return billRepository.findByUserAndBillStatus(user, billStatus, PageRequest.of(page, size)).map(TransactionRespone::new);
+        }
+    }
+
+    public TransactionDetailRespone getTransactionDetail(String id) {
+        Bill bill = billRepository.findById(id).orElseThrow(() -> new RuntimeException("Bill not found"));
+        return new TransactionDetailRespone(bill);
     }
 }
