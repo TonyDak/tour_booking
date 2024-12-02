@@ -19,6 +19,8 @@ public class Bill {
     private String special_requirement;
     private String other_requirement;
     private LocalDate start_time = LocalDate.now();
+    private Integer total_adult;
+    private Integer total_child;
     private Integer total_price;
 
     //status: draft, pending, paid, canceled

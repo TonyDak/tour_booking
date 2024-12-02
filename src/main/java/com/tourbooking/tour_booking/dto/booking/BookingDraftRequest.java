@@ -13,4 +13,6 @@ import java.time.LocalDate;
 public class BookingDraftRequest {
     String tour_id;
     String start_time;
+    Integer adult_quantity;
+    Integer children_quantity;
 }

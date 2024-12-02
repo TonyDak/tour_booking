@@ -1,9 +1,6 @@
 package com.tourbooking.tour_booking.service;
 
-import com.tourbooking.tour_booking.dto.booking.BookingDraftRequest;
-import com.tourbooking.tour_booking.dto.booking.BookingDraftRespone;
-import com.tourbooking.tour_booking.dto.booking.BookingRequest;
-import com.tourbooking.tour_booking.dto.booking.TravelerRequest;
+import com.tourbooking.tour_booking.dto.booking.*;
 import com.tourbooking.tour_booking.entity.*;
 import com.tourbooking.tour_booking.mapper.BillMapper;
 import com.tourbooking.tour_booking.repository.*;
@@ -32,12 +29,24 @@ public class BookingService {
         Tour tour = tourRepository.findById(bookingDraftRequest.getTour_id()).orElseThrow(() -> new RuntimeException("Tour not found"));
         Bill bill = billMapper.toBill(bookingDraftRequest);
         //bill_id form SOCTRIP-random chuỗi 10 number
+        bill.setTotal_adult(bookingDraftRequest.getAdult_quantity());
+        bill.setTotal_child(bookingDraftRequest.getChildren_quantity());
         bill.setId("SGUTOUR-" + (int) (Math.random() * 1000000000));
         bill.setBill_status(Bill.BillStatus.DRAFT);
         bill.setTour(tour);
         billRepository.save(bill);
-        return new BookingDraftRespone(bill.getId(), tour.getId(),bookingDraftRequest.getStart_time());
+        return new BookingDraftRespone(bill.getId(), tour.getId(),bookingDraftRequest.getStart_time(),bookingDraftRequest.getAdult_quantity(),bookingDraftRequest.getChildren_quantity());
 
+    }
+
+    //get bill by bill_id
+    public BookingDraftDetailRespone getBooking(String billId) {
+        Bill bill = billRepository.findById(billId).orElseThrow(() -> new RuntimeException("Bill not found"));
+        Tour tour = bill.getTour();
+        if (tour == null) {
+            throw new RuntimeException("Tour not found in the bill");
+        }
+        return new BookingDraftDetailRespone(bill);
     }
 
     @Transactional
@@ -76,10 +85,8 @@ public class BookingService {
 
         // Calculate total price
         int total_price = 0;
-        int total_adult = (int) bookingRequest.getTravelers().stream().filter(traveler -> traveler.getType() == Traveler.TravelerType.ADULT).count();
-        int total_children = (int) bookingRequest.getTravelers().stream().filter(traveler -> traveler.getType() == Traveler.TravelerType.CHILD).count();
-        total_price += (int) (tour.getPrice() * total_adult);
-        total_price += (int) (tour.getPrice() * 0.6) * total_children;
+        total_price += (int) (tour.getPrice() * bill.getTotal_adult());
+        total_price += (int) (tour.getPrice() * 0.6) * bill.getTotal_child();
 
         // Apply promotion
         if (promotion != null) {

@@ -11,6 +11,6 @@ public class BookingDraftRespone {
     String bill_id;
     String tour_id;
     String start_time;
-
-
+    Integer adult_quantity;
+    Integer children_quantity;
 }

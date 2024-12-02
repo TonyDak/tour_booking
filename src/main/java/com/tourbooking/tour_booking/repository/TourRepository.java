@@ -23,4 +23,5 @@ public interface TourRepository extends JpaRepository<Tour, String> {
 
     List<Tour> findTop10ByOrderByIdAsc();
 
+
 }
