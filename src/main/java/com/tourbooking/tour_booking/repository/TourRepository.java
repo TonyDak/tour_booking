@@ -23,7 +23,4 @@ public interface TourRepository extends JpaRepository<Tour, String> {
 
     List<Tour> findTop10ByOrderByIdAsc();
 
-    //find by id by query
-    @Query("SELECT t FROM Tour t WHERE t.id = :id")
-    Optional<Tour> findByTourId(String id);
-    }
+}

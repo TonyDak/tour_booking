@@ -29,7 +29,7 @@ public class BookingService {
 
     @Transactional
     public BookingDraftRespone createBooking(BookingDraftRequest bookingDraftRequest) {
-        Tour tour = tourRepository.findByTourId(bookingDraftRequest.getTour_id()).orElseThrow(() -> new RuntimeException("Tour not found"));
+        Tour tour = tourRepository.findById(bookingDraftRequest.getTour_id()).orElseThrow(() -> new RuntimeException("Tour not found"));
         Bill bill = billMapper.toBill(bookingDraftRequest);
         //bill_id form SOCTRIP-random chuỗi 10 number
         bill.setId("SGUTOUR-" + (int) (Math.random() * 1000000000));
@@ -40,80 +40,81 @@ public class BookingService {
 
     }
 
+    @Transactional
     public BookingRequest confirmBooking(BookingRequest bookingRequest) {
         Bill bill = billRepository.findByBillId(bookingRequest.getBill_id()).orElseThrow(() -> new RuntimeException("Bill not found"));
         User user = userRepository.findByEmail(bookingRequest.getEmail()).orElseThrow(() -> new RuntimeException("User not found"));
-        Tour tour = tourRepository.findByTourId(bookingRequest.getTour_id()).orElseThrow(() -> new RuntimeException("Tour not found"));
         Promotion promotion = promotionRepository.findByCode(bookingRequest.getPromotion_code()).orElse(null);
-        //check promotion
+        Tour tour = bill.getTour();
+        if (tour == null) {
+            throw new RuntimeException("Tour not found in the bill");
+        }
+
+        // Check promotion
         if (promotion != null) {
-            //check start_time and end_time
             if (promotion.getStart_time().isAfter(LocalDate.now()) || promotion.getEnd_time().isBefore(LocalDate.now())) {
                 throw new RuntimeException("Promotion is not available");
             }
-            //check stock
             if (promotion.getStock() == 0) {
                 throw new RuntimeException("Promotion is out of stock");
             }
-            //check active
             if (promotion.getActive() == 0) {
                 throw new RuntimeException("Promotion is not active");
             }
         }
+
         bill.setBill_status(Bill.BillStatus.PENDING);
         bill.setSpecial_requirement(bookingRequest.getSpecial_requirement());
         bill.setOther_requirement(bookingRequest.getOther_requirement());
         bill.setUser(user);
         bill.setBooked_at(LocalDateTime.now());
-        //check min_traveler
+
+        // Check min_traveler
         if (bookingRequest.getTravelers().size() < tour.getMin_booking_traveller()) {
             throw new RuntimeException("Number of travelers is less than min traveler");
         }
-        //check type adult or child in travelers
-        var total_price = 0;
-        for (TravelerRequest traveler : bookingRequest.getTravelers()) {
-            if (traveler.getType().equals(Traveler.TravelerType.ADULT)) {
-                total_price += tour.getPrice();
-            } else {
-                //-40% for child
-                total_price += (int) (tour.getPrice() * 0.6);
-            }
-        }
-        //check promotion
+
+        // Calculate total price
+        int total_price = 0;
+        int total_adult = (int) bookingRequest.getTravelers().stream().filter(traveler -> traveler.getType() == Traveler.TravelerType.ADULT).count();
+        int total_children = (int) bookingRequest.getTravelers().stream().filter(traveler -> traveler.getType() == Traveler.TravelerType.CHILD).count();
+        total_price += (int) (tour.getPrice() * total_adult);
+        total_price += (int) (tour.getPrice() * 0.6) * total_children;
+
+        // Apply promotion
         if (promotion != null) {
-            //check min_order
             if (total_price < promotion.getMin_order()) {
                 throw new RuntimeException("Total price is less than min order");
             }
-            //check discount
             if (promotion.getType() == 0) {
                 total_price -= promotion.getDiscount();
             } else {
-                total_price -= total_price * promotion.getDiscount() / 100;
-                //check max_discount
-                if (total_price * promotion.getDiscount() / 100 > promotion.getMax_discount()) {
-                    total_price = total_price - promotion.getMax_discount();
+                int discountAmount = total_price * promotion.getDiscount() / 100;
+                if (discountAmount > promotion.getMax_discount()) {
+                    discountAmount = promotion.getMax_discount();
                 }
+                total_price -= discountAmount;
             }
-            //decrease stock
             promotion.setStock(promotion.getStock() - 1);
             promotionRepository.save(promotion);
             bill.setPromotion(promotion);
         }
-        bill.setTotal_price(total_price);
-        billRepository.save(bill);
 
         // Set the bill_id for each traveler
         for (TravelerRequest traveler : bookingRequest.getTravelers()) {
-            //check bill_id
-            if (travelerRepository.existsByBill_Id((bookingRequest.getBill_id()))) {
-                throw new RuntimeException("Bill_id is already exist");
-            }else {
+            if (travelerRepository.existsByBill_Id(bookingRequest.getBill_id())) {
+                continue;
+            } else {
                 Traveler travelerEntity = billMapper.toTraveler(traveler);
                 travelerEntity.setBill(bill);
                 travelerRepository.save(travelerEntity);
             }
         }
+
+        bill.setTotal_price(total_price);
+        billRepository.save(bill);
+
+
         return bookingRequest;
     }
 

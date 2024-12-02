@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 @Data
 public class TransactionDetailRespone {
     String bill_id;
+    String tour_id;
     String bill_status;
     LocalDateTime booked_at;
     Integer total_days;
@@ -22,11 +23,15 @@ public class TransactionDetailRespone {
     LocalDate end_days;
     Integer total_adult;
     Integer total_children;
+    Integer price_adult;
+    Integer price_children;
     Integer total_price;
+    UserInfoRequest user;
     List<TravelerRespone> travelers;
 
     public TransactionDetailRespone(Bill bill) {
         this.bill_id = bill.getId();
+        this.tour_id = bill.getTour().getId();
         this.bill_status = bill.getBill_status().getName();
         this.booked_at = bill.getBooked_at();
         this.total_days = bill.getTour().getTotal_days();
@@ -37,6 +42,9 @@ public class TransactionDetailRespone {
         this.total_adult = (int) bill.getTravelers().stream().filter(traveler -> traveler.getType() == Traveler.TravelerType.ADULT).count();
         this.total_children = (int) bill.getTravelers().stream().filter(traveler -> traveler.getType() == Traveler.TravelerType.CHILD).count();
         this.total_price = bill.getTotal_price();
+        this.price_adult = (int) (bill.getTour().getPrice()*total_adult);
+        this.price_children = (int) ((bill.getTour().getPrice()*0.6)*total_children);
+        this.user = new UserInfoRequest(bill.getUser());
         this.travelers = bill.getTravelers().stream().map(TravelerRespone::new).collect(Collectors.toList());
     }
 }
