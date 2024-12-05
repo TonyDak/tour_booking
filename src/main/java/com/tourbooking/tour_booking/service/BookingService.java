@@ -49,6 +49,16 @@ public class BookingService {
         return new BookingDraftDetailRespone(bill);
     }
 
+    //get bill detail by bill_id
+    public BookingDetailRespone getBookingDetail(String billId) {
+        Bill bill = billRepository.findById(billId).orElseThrow(() -> new RuntimeException("Bill not found"));
+        Tour tour = bill.getTour();
+        if (tour == null) {
+            throw new RuntimeException("Tour not found in the bill");
+        }
+        return new BookingDetailRespone(bill);
+    }
+
     @Transactional
     public BookingRequest confirmBooking(BookingRequest bookingRequest) {
         Bill bill = billRepository.findByBillId(bookingRequest.getBill_id()).orElseThrow(() -> new RuntimeException("Bill not found"));
@@ -58,6 +68,11 @@ public class BookingService {
         if (tour == null) {
             throw new RuntimeException("Tour not found in the bill");
         }
+
+        //check bookable_start_date and bookable_end_date
+//        if (tour.getBookable_start_date().isAfter(LocalDate.now()) || tour.getBookable_end_date().isBefore(LocalDate.now())) {
+//            throw new RuntimeException("Tour is not available");
+//        }
 
         // Check promotion
         if (promotion != null) {

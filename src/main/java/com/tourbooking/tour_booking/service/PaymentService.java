@@ -12,9 +12,11 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -119,6 +121,7 @@ public class PaymentService {
                         {
                             // Here Code update PaymnentStatus = 1 into your Database bill
                             bill.setBill_status(Bill.BillStatus.PAID);
+                            bill.setPin_code(getRandomNumber(4));
                             billRepository.save(bill);
                             sendEmailPaymentSucces(bill.getUser().getEmail(), bill.getTour().getTitle(), bill.getId(), bill.getBooked_at(), bill.getTotal_price());
                             return VNPayResponse.builder()

@@ -22,6 +22,7 @@ public class Bill {
     private Integer total_adult;
     private Integer total_child;
     private Integer total_price;
+    private String pin_code;
 
     //status: draft, pending, paid, canceled
     @Enumerated(EnumType.STRING)

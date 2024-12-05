@@ -1,10 +1,7 @@
 package com.tourbooking.tour_booking.controller;
 
 import com.tourbooking.tour_booking.dto.ApiResponse;
-import com.tourbooking.tour_booking.dto.booking.BookingDraftDetailRespone;
-import com.tourbooking.tour_booking.dto.booking.BookingDraftRequest;
-import com.tourbooking.tour_booking.dto.booking.BookingDraftRespone;
-import com.tourbooking.tour_booking.dto.booking.BookingRequest;
+import com.tourbooking.tour_booking.dto.booking.*;
 import com.tourbooking.tour_booking.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +21,11 @@ public class BookingController {
     @GetMapping("/payment/{billId}")
     public ApiResponse<BookingDraftDetailRespone> getBooking(@PathVariable String billId) {
         return ApiResponse.<BookingDraftDetailRespone>builder().result(bookingService.getBooking(billId)).build();
+    }
+
+    @GetMapping("/payment/detail/{billId}")
+    public ApiResponse<BookingDetailRespone> getBookingDetail(@PathVariable String billId) {
+        return ApiResponse.<BookingDetailRespone>builder().result(bookingService.getBookingDetail(billId)).build();
     }
 
     @PostMapping("/payment")
