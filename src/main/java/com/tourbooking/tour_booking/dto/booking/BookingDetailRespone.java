@@ -11,8 +11,10 @@ public class BookingDetailRespone {
     String bill_id;
     String pin_code;
     String start_time;
+    Integer total_days;
     Integer adult_quantity;
     Integer children_quantity;
+    Integer total_quantity;
     String status;
     String avt;
     String tour_title;
@@ -26,8 +28,10 @@ public class BookingDetailRespone {
         this.bill_id = bill.getId();
         this.pin_code = bill.getPin_code();
         this.start_time = String.valueOf(bill.getStart_time());
+        this.total_days = bill.getTour().getTotal_days();
         this.adult_quantity = bill.getTotal_adult();
         this.children_quantity = bill.getTotal_child();
+        this.total_quantity = bill.getTotal_adult() + bill.getTotal_child();
         this.status = bill.getBill_status().name();
         this.avt = bill.getTour().getAvt();
         this.tour_title = bill.getTour().getTitle();
