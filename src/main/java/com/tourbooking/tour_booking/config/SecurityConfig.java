@@ -53,7 +53,6 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/oauth2/authorization/google") // Endpoint bắt đầu login Google
                         .successHandler((request, response, authentication) -> {
-                            // Call controller to handle successful login
                             if (authentication != null) {
                                 OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication;
                                 try {
@@ -68,7 +67,7 @@ public class SecurityConfig {
                                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed");
                             }
                         })
-                )
+                ).formLogin(AbstractHttpConfigurer::disable)
                 .oauth2ResourceServer(oauth2ResourceServer ->
                         oauth2ResourceServer
                                 .jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtCustomDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter()))
