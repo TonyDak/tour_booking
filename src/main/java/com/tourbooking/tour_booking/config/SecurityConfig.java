@@ -26,7 +26,7 @@ import java.io.IOException;
 @EnableMethodSecurity
 @AllArgsConstructor
 public class SecurityConfig {
-    private final String[] PUBLIC_ENDPOINTS = {"/v1/auth/login", "/v1/auth/login-google","/v1/booking/chosen-tour","/v1/booking/payment/**", "/v1/booking/payment","/v1/payment/vn-pay-callback","/v1/auth/register", "/v1/auth/introspect", "/v1/auth/logout", "/v1/auth/forgot-password", "/v1/users/forgot-password", "/v1/users/reset-password/**"};
+    private final String[] PUBLIC_ENDPOINTS = {"/v1/auth/login", "/v1/auth/login-google","/v1/booking/chosen-tour","/v1/booking/payment/**", "/v1/booking/payment/vn-pay", "/v1/booking/payment","/v1/payment/vn-pay-callback","/v1/auth/register", "/v1/auth/introspect", "/v1/auth/logout", "/v1/auth/forgot-password", "/v1/users/forgot-password", "/v1/users/reset-password/**"};
     @Autowired
     private  JwtCustomDecoder jwtCustomDecoder;
 
