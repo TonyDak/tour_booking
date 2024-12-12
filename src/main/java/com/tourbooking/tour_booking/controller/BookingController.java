@@ -32,4 +32,10 @@ public class BookingController {
     public ApiResponse<BookingRequest> payment(@RequestBody BookingRequest bookingRequest) {
         return ApiResponse.<BookingRequest>builder().result(bookingService.confirmBooking(bookingRequest)).build();
     }
+
+    @PostMapping("/payment/search")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<BookingDetailRespone> searchBooking(@RequestBody SearchBillRequest request) {
+        return ApiResponse.<BookingDetailRespone>builder().result(bookingService.getBookingDetail(request.getBill_id(), request.getPin_code())).build();
+    }
 }

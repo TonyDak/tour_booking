@@ -93,8 +93,8 @@ public class AuthenticationService {
         mailSender.send(message);
     }
     @Transactional
-    public AuthenticationResponse handleGoogleLogin(OAuth2AuthenticationToken authentication) throws MessagingException {
-        OAuth2User oAuth2User = authentication.getPrincipal();
+    public AuthenticationResponse handleGoogleLogin(OAuth2AuthenticationToken oAuth2AuthenticationToken) throws MessagingException {
+        OAuth2User oAuth2User = oAuth2AuthenticationToken.getPrincipal();
         String email = oAuth2User.getAttribute("email");
         String username = oAuth2User.getAttribute("name");
 

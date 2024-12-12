@@ -140,6 +140,16 @@ public class BookingService {
         return bookingRequest;
     }
 
+    //get bill by bill_id and pin_code
+    public BookingDetailRespone getBookingDetail(String billId, String pinCode) {
+        Bill bill = billRepository.findByBillIdAndPinCode(billId, pinCode).orElseThrow(() -> new RuntimeException("Bill not found"));
+        Tour tour = bill.getTour();
+        if (tour == null) {
+            throw new RuntimeException("Tour not found in the bill");
+        }
+        return new BookingDetailRespone(bill);
+    }
+
     @Scheduled(fixedRate = 60000) // Run every minute
     public void deleteOldDraftBills() {
         LocalDateTime timeLimit = LocalDateTime.now().minusMinutes(15);

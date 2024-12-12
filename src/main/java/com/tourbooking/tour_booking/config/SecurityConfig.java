@@ -3,8 +3,7 @@ package com.tourbooking.tour_booking.config;
 import com.tourbooking.tour_booking.controller.AuthenticatonController;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,17 +20,16 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import java.io.IOException;
 
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SecurityConfig {
-    private final String[] PUBLIC_ENDPOINTS = {"/v1/auth/login", "/v1/auth/login-google","/v1/booking/chosen-tour","/v1/booking/payment/**", "/v1/booking/payment/vn-pay", "/v1/booking/payment","/v1/payment/vn-pay-callback","/v1/auth/register", "/v1/auth/introspect", "/v1/auth/logout", "/v1/auth/forgot-password", "/v1/users/forgot-password", "/v1/users/reset-password/**"};
-    @Autowired
-    private  JwtCustomDecoder jwtCustomDecoder;
+    private final String[] PUBLIC_ENDPOINTS = {"/v1/auth/login", "/v1/auth/login-google","/v1/auth/fetch-token","/v1/booking/chosen-tour","/v1/booking/payment/**", "/v1/booking/payment","/v1/payment/vn-pay-callback","/v1/auth/register", "/v1/auth/introspect", "/v1/auth/logout", "/v1/auth/forgot-password", "/v1/users/forgot-password", "/v1/users/reset-password/**"};
+    private final JwtCustomDecoder jwtCustomDecoder;
 
-    @Autowired
-    private AuthenticatonController authenticatonController;
+    private final AuthenticatonController authenticatonController;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -41,6 +39,7 @@ public class SecurityConfig {
 
                                 .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
                                 .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINTS).permitAll()
+                                .requestMatchers(HttpMethod.GET, "/v1/auth/login-google").authenticated()
                                 .requestMatchers(HttpMethod.POST, "v1/tours/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/v1/tours/**").permitAll()
                                 .requestMatchers(HttpMethod.PUT, "/v1/tours/**").permitAll()
@@ -52,6 +51,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/oauth2/authorization/google") // Endpoint bắt đầu login Google
+                        // Xử lý khi login thành công gọi hàm Handle Google Login trong AuthenticatonController
                         .successHandler((request, response, authentication) -> {
                             if (authentication != null) {
                                 OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication;

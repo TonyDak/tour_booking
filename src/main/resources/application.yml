@@ -47,6 +47,7 @@ spring:
                         scope: openid, profile, email
                         redirect-uri: ${GOOGLE_REDIRECT_URI}
                         authorization-grant-type: authorization_code
+                        client-name: Google
                 provider:
                     google:
                         authorization-uri: https://accounts.google.com/o/oauth2/v2/auth

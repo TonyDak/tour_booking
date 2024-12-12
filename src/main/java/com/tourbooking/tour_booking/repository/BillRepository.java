@@ -26,4 +26,8 @@ public interface BillRepository extends JpaRepository<Bill, String> {
 
     @Query("SELECT b FROM Bill b WHERE b.bill_status = 'PENDING' AND b.booked_at < :timeLimit")
     List<Bill> findPendingBillsOlderThan(LocalDateTime timeLimit);
+
+    //find by bill_id and pin_code
+    @Query("SELECT b FROM Bill b WHERE b.id = :bill_id AND b.pin_code = :pin_code")
+    Optional<Bill> findByBillIdAndPinCode(String bill_id, String pin_code);
 }

@@ -25,7 +25,7 @@ import java.text.ParseException;
 public class PaymentController {
     private final PaymentService paymentService;
     @PostMapping("/payment/vn-pay")
-    //@PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<VNPayResponse> pay(HttpServletRequest request,@RequestBody VNPayRequest vnPayRequest) throws ParseException {
         ApiResponse<VNPayResponse> response = new ApiResponse<>();
         response.setMessage("Payment created");

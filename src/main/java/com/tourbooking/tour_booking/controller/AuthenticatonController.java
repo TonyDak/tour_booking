@@ -8,7 +8,12 @@ import com.tourbooking.tour_booking.service.AuthenticationService;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
@@ -25,9 +30,12 @@ public class AuthenticatonController {
         return ApiResponse.<AuthenticationResponse>builder().result(authenticated).build();
     }
 
-    @PostMapping("/login-google")
-    public ApiResponse<AuthenticationResponse> handleGoogleLogin(OAuth2AuthenticationToken authentication) throws MessagingException {
-        var authenticated = authenticationService.handleGoogleLogin(authentication);
+    @GetMapping("/login-google")
+    public ApiResponse<AuthenticationResponse> handleGoogleLogin(@AuthenticationPrincipal OAuth2AuthenticationToken oAuth2User) throws MessagingException {
+        if (oAuth2User == null) {
+            throw new IllegalStateException("OAuth2User is null");
+        }
+        var authenticated = authenticationService.handleGoogleLogin(oAuth2User);
         return ApiResponse.<AuthenticationResponse>builder().result(authenticated).build();
     }
 
