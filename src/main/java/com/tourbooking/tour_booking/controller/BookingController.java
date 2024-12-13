@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/v1/booking")
 @RequiredArgsConstructor
@@ -37,5 +39,11 @@ public class BookingController {
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<BookingDetailRespone> searchBooking(@RequestBody SearchBillRequest request) {
         return ApiResponse.<BookingDetailRespone>builder().result(bookingService.getBookingDetail(request.getBill_id(), request.getPin_code())).build();
+    }
+
+    @GetMapping("/get-all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<BookingDetailRespone>> getAllBooking() {
+        return ApiResponse.<List<BookingDetailRespone>>builder().result(bookingService.getAllBooking()).build();
     }
 }

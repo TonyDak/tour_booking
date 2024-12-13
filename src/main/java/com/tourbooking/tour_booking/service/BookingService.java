@@ -169,5 +169,10 @@ public class BookingService {
         }
     }
 
+    //get allbooking
+    public List<BookingDetailRespone> getAllBooking() {
+        List<Bill> bills = billRepository.findAll();
+        return bills.stream().map(BookingDetailRespone::new).toList();
+    }
 
 }
