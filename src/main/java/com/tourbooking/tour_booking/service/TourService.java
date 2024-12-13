@@ -63,7 +63,7 @@ public class TourService {
 
 //        tour.getGalleries().forEach(gallery -> gallery.setTour(tour));
 
-        tour.getSchedules().forEach(schedule -> schedule.setTour(tour));
+//        tour.getSchedules().forEach(schedule -> schedule.setTour(tour));
 
         tour.getItineraries().forEach(itinerary -> {
             itinerary.setTour(tour);

@@ -19,5 +19,6 @@ public class PlaceVisitCreate {
     String start_time;
     String end_time;
     String description;
+    Integer order_number;
     Place place;
 }
