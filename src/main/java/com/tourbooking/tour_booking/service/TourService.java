@@ -366,7 +366,7 @@ public class TourService {
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new RuntimeException("Tour not found with ID: " + tourId));
 
-        galleryRepository.deleteAllByTourId(tourId);
+//        galleryRepository.deleteAllByTourId(tourId);
 
         List<Gallery> galleries = galleryUrls.stream()
                 .map(url -> {
