@@ -13,6 +13,7 @@ import java.util.List;
 public class BookingDetailRespone {
     String bill_id;
     String pin_code;
+    String booked_at;
     String start_time;
     Integer total_days;
     Integer adult_quantity;
@@ -32,6 +33,7 @@ public class BookingDetailRespone {
     public BookingDetailRespone(Bill bill) {
         this.bill_id = bill.getId();
         this.pin_code = bill.getPin_code();
+        this.booked_at = String.valueOf(bill.getBooked_at());
         this.start_time = String.valueOf(bill.getStart_time());
         this.total_days = bill.getTour().getTotal_days();
         this.adult_quantity = bill.getTotal_adult();
